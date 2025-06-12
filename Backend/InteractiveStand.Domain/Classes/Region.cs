@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 
 namespace InteractiveStand.Domain.Classes
 {
-    public abstract class Region
+    public class Region
     {
         [Key]
         public int Id { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
         
-        public RegionType Type { get; set; }
         [Range(0, double.MaxValue)]
         public double ProducedCapacity { get; set; }
         [Range(0, double.MaxValue)]

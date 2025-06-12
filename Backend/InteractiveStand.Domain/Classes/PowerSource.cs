@@ -14,28 +14,28 @@ namespace InteractiveStand.Domain.Classes
         [Key]
         public int Id { get; set; }
 
-        [Range(0,100)]
-        public double AESPercentage { get; set; }
         [Range(0, 100)]
-        public double GESPercentage { get; set; }
+        public double AESPercentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double TESPercentage { get; set; }
+        public double GESPercentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double VESPercentage { get; set; }
+        public double TESPercentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double SESPercentage { get; set; }
+        public double VESPercentage { get; set; } = 0.0;
+        [Range(0, 100)]
+        public double SESPercentage { get; set; } = 0.0;
         
         public double TotalPercentage => AESPercentage + GESPercentage + TESPercentage + VESPercentage + SESPercentage;
         public PowerSource() { }
-        public PowerSource(double aesPercentage = 0.0, double gesPercentage = 0.0, double tesPercentage = 0.0,
-                    double vesPercentage = 0.0, double sesPercentage = 0.0)
-        {
-            AESPercentage = aesPercentage;
-            GESPercentage = gesPercentage;
-            TESPercentage = tesPercentage;
-            VESPercentage = vesPercentage;
-            SESPercentage = sesPercentage;
-        }
+        //public PowerSource(double aesPercentage = 0.0, double gesPercentage = 0.0, double tesPercentage = 0.0,
+        //            double vesPercentage = 0.0, double sesPercentage = 0.0)
+        //{
+        //    AESPercentage = aesPercentage;
+        //    GESPercentage = gesPercentage;
+        //    TESPercentage = tesPercentage;
+        //    VESPercentage = vesPercentage;
+        //    SESPercentage = sesPercentage;
+        //}
 
         public double CalculateAvailableCapacity(double producedCapacity)
         {
