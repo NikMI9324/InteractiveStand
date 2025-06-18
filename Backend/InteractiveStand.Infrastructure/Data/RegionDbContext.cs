@@ -1,8 +1,5 @@
 ﻿using InteractiveStand.Domain.Classes;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using System.Data.Common;
-using System.Runtime.CompilerServices;
 
 namespace InteractiveStand.Infrastructure.Data
 {
@@ -12,6 +9,7 @@ namespace InteractiveStand.Infrastructure.Data
         public DbSet<Consumer> Consumers { get; set; }
         public DbSet<PowerSource> PowerSources { get; set; }
         public DbSet<ConnectedRegion> ConnectedRegions { get; set; }
+        public DbSet<PowerTransfer> PowerTransfers { get; set; }
         public RegionDbContext(DbContextOptions<RegionDbContext> options) : base(options) 
         {
 
@@ -22,16 +20,43 @@ namespace InteractiveStand.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Region>()
-                        .HasOne<PowerSource>()
+                        .HasOne(r => r.PowerSource)
                         .WithOne()
-                        .HasForeignKey<Region>(r => r.PowerSourceId);
+                        .HasForeignKey<Region>(r => r.PowerSourceId)
+                        .OnDelete(DeleteBehavior.Cascade); ;
             modelBuilder.Entity<Region>()
-                        .HasOne<Consumer>()
+                        .HasOne(r => r.Consumer)
                         .WithOne()
-                        .HasForeignKey<Region>(r => r.ConsumerId);
+                        .HasForeignKey<Region>(r => r.ConsumerId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<ConnectedRegion>()
                         .HasKey(cr => cr.Id);
-            
+            modelBuilder.Entity<ConnectedRegion>()
+                        .HasOne<Region>()
+                        .WithMany()
+                        .HasForeignKey(cr => cr.RegionSourceId)
+                        .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ConnectedRegion>()
+                        .HasOne<Region>()
+                        .WithMany()
+                        .HasForeignKey(cr => cr.RegionDestinationId)
+                        .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PowerTransfer>()
+                        .HasKey(pt => pt.Id);
+            modelBuilder.Entity<PowerTransfer>()
+                        .HasOne<Region>()
+                        .WithMany()
+                        .HasForeignKey(pt => pt.WhoReceivedId)
+                        .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PowerTransfer>()
+                        .HasOne<Region>()
+                        .WithMany()
+                        .HasForeignKey(pt => pt.WhoSentId)
+                        .OnDelete(DeleteBehavior.Restrict);
+
+
             List<PowerSource> powerSources = new List<PowerSource> 
             {
                 new PowerSource
@@ -106,7 +131,6 @@ namespace InteractiveStand.Infrastructure.Data
                     Id = 10,
                     VESPercentage = 100.0,
                 }
-
             };
             List<Consumer> consumers = new List<Consumer> 
             {
@@ -119,7 +143,7 @@ namespace InteractiveStand.Infrastructure.Data
                 new Consumer { Id =  7, FirstPercentage = 20.0, SecondPercentage = 50.0, ThirdPercentage = 30.0 },
                 new Consumer { Id =  8, FirstPercentage = 30.0, SecondPercentage = 20.0, ThirdPercentage = 50.0 },
                 new Consumer { Id =  9, FirstPercentage = 70.0, SecondPercentage = 10.0, ThirdPercentage = 20.0 },
-                new Consumer { Id = 10, FirstPercentage = 30.0, SecondPercentage = 20.0, ThirdPercentage = 50.0 },
+                new Consumer { Id = 10, FirstPercentage = 30.0, SecondPercentage = 20.0, ThirdPercentage = 50.0 }
 
             };
             List<Region> regions = new List<Region> 
@@ -132,6 +156,7 @@ namespace InteractiveStand.Infrastructure.Data
                     ConsumedCapacity = 100.0,
                     PowerSourceId = 1,
                     ConsumerId = 1,
+                    TimeZoneOffset = 3
                 },
                 new Region
                 {
@@ -140,7 +165,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 62.0,
                     ConsumedCapacity = 270.0,
                     PowerSourceId = 2,
-                    ConsumerId = 2
+                    ConsumerId = 2,
+                    TimeZoneOffset = 3
                 },
                 new Region
                 {
@@ -149,7 +175,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 32.0,
                     ConsumedCapacity = 140.0,
                     PowerSourceId = 3,
-                    ConsumerId = 3
+                    ConsumerId = 3,
+                    TimeZoneOffset = 3
                 },
                 new Region
                 {
@@ -158,7 +185,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 27.0,
                     ConsumedCapacity = 120.0,
                     PowerSourceId = 4,
-                    ConsumerId = 4
+                    ConsumerId = 4,
+                    TimeZoneOffset = 4
                 },
                 new Region
                 {
@@ -167,7 +195,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 60.0,
                     ConsumedCapacity = 260.0,
                     PowerSourceId = 5,
-                    ConsumerId = 5
+                    ConsumerId = 5,
+                    TimeZoneOffset = 5
                 },
                 new Region
                 {
@@ -176,7 +205,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 55.0,
                     ConsumedCapacity = 240.0,
                     PowerSourceId = 6,
-                    ConsumerId = 6
+                    ConsumerId = 6,
+                    TimeZoneOffset = 7
                 },
                 new Region
                 {
@@ -185,7 +215,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 50.0,
                     ConsumedCapacity = 11.0,
                     PowerSourceId = 7,
-                    ConsumerId = 7
+                    ConsumerId = 7,
+                    TimeZoneOffset = 10
                 },
                 new Region
                 {
@@ -194,7 +225,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 15.0,
                     ConsumedCapacity = 3.0,
                     PowerSourceId = 8,
-                    ConsumerId = 8
+                    ConsumerId = 8,
+                    TimeZoneOffset = 3
                 },
                 new Region
                 {
@@ -203,7 +235,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 15.0,
                     ConsumedCapacity = 3.0,
                     PowerSourceId = 9,
-                    ConsumerId = 9
+                    ConsumerId = 9,
+                    TimeZoneOffset = 7
                 },
                 new Region
                 {
@@ -212,7 +245,8 @@ namespace InteractiveStand.Infrastructure.Data
                     ProducedCapacity = 10.0,
                     ConsumedCapacity = 0.5,
                     PowerSourceId = 10,
-                    ConsumerId = 10
+                    ConsumerId = 10,
+                    TimeZoneOffset = 4
                 }
 
             };

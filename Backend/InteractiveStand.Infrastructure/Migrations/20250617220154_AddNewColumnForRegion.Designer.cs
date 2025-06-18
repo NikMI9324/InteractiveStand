@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InteractiveStand.Infrastructure.Migrations
 {
     [DbContext(typeof(RegionDbContext))]
-    [Migration("20250612115026_Init")]
-    partial class Init
+    [Migration("20250617220154_AddNewColumnForRegion")]
+    partial class AddNewColumnForRegion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,13 +32,29 @@ namespace InteractiveStand.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("ReceivedFirstCategoryCapacity")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ReceivedRemainingCapacity")
+                        .HasColumnType("double precision");
+
                     b.Property<int>("RegionDestinationId")
                         .HasColumnType("integer");
 
                     b.Property<int>("RegionSourceId")
                         .HasColumnType("integer");
 
+                    b.Property<double>("SentFirstCategoryCapacity")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("SentRemainingCapacity")
+                        .HasColumnType("double precision");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("RegionDestinationId");
+
+                    b.HasIndex("RegionSourceId");
 
                     b.ToTable("ConnectedRegions");
 
@@ -46,146 +62,242 @@ namespace InteractiveStand.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 2,
-                            RegionSourceId = 1
+                            RegionSourceId = 1,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 2,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 5,
-                            RegionSourceId = 1
+                            RegionSourceId = 1,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 3,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 8,
-                            RegionSourceId = 1
+                            RegionSourceId = 1,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 4,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 1,
-                            RegionSourceId = 2
+                            RegionSourceId = 2,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 5,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 3,
-                            RegionSourceId = 2
+                            RegionSourceId = 2,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 6,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 4,
-                            RegionSourceId = 2
+                            RegionSourceId = 2,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 7,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 5,
-                            RegionSourceId = 2
+                            RegionSourceId = 2,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 8,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 2,
-                            RegionSourceId = 3
+                            RegionSourceId = 3,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 9,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 4,
-                            RegionSourceId = 3
+                            RegionSourceId = 3,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 10,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 2,
-                            RegionSourceId = 4
+                            RegionSourceId = 4,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 11,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 3,
-                            RegionSourceId = 4
+                            RegionSourceId = 4,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 12,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 5,
-                            RegionSourceId = 4
+                            RegionSourceId = 4,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 13,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 10,
-                            RegionSourceId = 4
+                            RegionSourceId = 4,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 14,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 1,
-                            RegionSourceId = 5
+                            RegionSourceId = 5,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 15,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 2,
-                            RegionSourceId = 5
+                            RegionSourceId = 5,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 16,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 4,
-                            RegionSourceId = 5
+                            RegionSourceId = 5,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 17,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 6,
-                            RegionSourceId = 5
+                            RegionSourceId = 5,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 18,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 5,
-                            RegionSourceId = 6
+                            RegionSourceId = 6,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 19,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 7,
-                            RegionSourceId = 6
+                            RegionSourceId = 6,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 20,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 9,
-                            RegionSourceId = 6
+                            RegionSourceId = 6,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 21,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 6,
-                            RegionSourceId = 7
+                            RegionSourceId = 7,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 22,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 1,
-                            RegionSourceId = 8
+                            RegionSourceId = 8,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 23,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 6,
-                            RegionSourceId = 9
+                            RegionSourceId = 9,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         },
                         new
                         {
                             Id = 24,
+                            ReceivedFirstCategoryCapacity = 0.0,
+                            ReceivedRemainingCapacity = 0.0,
                             RegionDestinationId = 4,
-                            RegionSourceId = 10
+                            RegionSourceId = 10,
+                            SentFirstCategoryCapacity = 0.0,
+                            SentRemainingCapacity = 0.0
                         });
                 });
 
@@ -403,6 +515,36 @@ namespace InteractiveStand.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("InteractiveStand.Domain.Classes.PowerTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("SentCapacity")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("WhoReceivedId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WhoSentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WhoReceivedId");
+
+                    b.HasIndex("WhoSentId");
+
+                    b.ToTable("PowerTransfers");
+                });
+
             modelBuilder.Entity("InteractiveStand.Domain.Classes.Region", b =>
                 {
                     b.Property<int>("Id")
@@ -427,6 +569,9 @@ namespace InteractiveStand.Infrastructure.Migrations
                     b.Property<double>("ProducedCapacity")
                         .HasColumnType("double precision");
 
+                    b.Property<int>("TimeZoneOffset")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ConsumerId")
@@ -445,7 +590,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 1,
                             Name = "ОЭС 1",
                             PowerSourceId = 1,
-                            ProducedCapacity = 23.0
+                            ProducedCapacity = 23.0,
+                            TimeZoneOffset = 3
                         },
                         new
                         {
@@ -454,7 +600,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 2,
                             Name = "ОЭС 2",
                             PowerSourceId = 2,
-                            ProducedCapacity = 62.0
+                            ProducedCapacity = 62.0,
+                            TimeZoneOffset = 3
                         },
                         new
                         {
@@ -463,7 +610,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 3,
                             Name = "ОЭС 3",
                             PowerSourceId = 3,
-                            ProducedCapacity = 32.0
+                            ProducedCapacity = 32.0,
+                            TimeZoneOffset = 3
                         },
                         new
                         {
@@ -472,7 +620,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 4,
                             Name = "ОЭС 4",
                             PowerSourceId = 4,
-                            ProducedCapacity = 27.0
+                            ProducedCapacity = 27.0,
+                            TimeZoneOffset = 4
                         },
                         new
                         {
@@ -481,7 +630,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 5,
                             Name = "ОЭС 5",
                             PowerSourceId = 5,
-                            ProducedCapacity = 60.0
+                            ProducedCapacity = 60.0,
+                            TimeZoneOffset = 5
                         },
                         new
                         {
@@ -490,7 +640,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 6,
                             Name = "ОЭС 6",
                             PowerSourceId = 6,
-                            ProducedCapacity = 55.0
+                            ProducedCapacity = 55.0,
+                            TimeZoneOffset = 7
                         },
                         new
                         {
@@ -499,7 +650,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 7,
                             Name = "ОЭС 7",
                             PowerSourceId = 7,
-                            ProducedCapacity = 50.0
+                            ProducedCapacity = 50.0,
+                            TimeZoneOffset = 10
                         },
                         new
                         {
@@ -508,7 +660,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 8,
                             Name = "АЭК-ТИТЭС",
                             PowerSourceId = 8,
-                            ProducedCapacity = 15.0
+                            ProducedCapacity = 15.0,
+                            TimeZoneOffset = 3
                         },
                         new
                         {
@@ -517,7 +670,8 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 9,
                             Name = "АЭК-ПРОМ",
                             PowerSourceId = 9,
-                            ProducedCapacity = 15.0
+                            ProducedCapacity = 15.0,
+                            TimeZoneOffset = 7
                         },
                         new
                         {
@@ -526,23 +680,58 @@ namespace InteractiveStand.Infrastructure.Migrations
                             ConsumerId = 10,
                             Name = "АЭК-ВИЭ",
                             PowerSourceId = 10,
-                            ProducedCapacity = 10.0
+                            ProducedCapacity = 10.0,
+                            TimeZoneOffset = 4
                         });
+                });
+
+            modelBuilder.Entity("InteractiveStand.Domain.Classes.ConnectedRegion", b =>
+                {
+                    b.HasOne("InteractiveStand.Domain.Classes.Region", null)
+                        .WithMany()
+                        .HasForeignKey("RegionDestinationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteractiveStand.Domain.Classes.Region", null)
+                        .WithMany()
+                        .HasForeignKey("RegionSourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteractiveStand.Domain.Classes.PowerTransfer", b =>
+                {
+                    b.HasOne("InteractiveStand.Domain.Classes.Region", null)
+                        .WithMany()
+                        .HasForeignKey("WhoReceivedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteractiveStand.Domain.Classes.Region", null)
+                        .WithMany()
+                        .HasForeignKey("WhoSentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("InteractiveStand.Domain.Classes.Region", b =>
                 {
-                    b.HasOne("InteractiveStand.Domain.Classes.Consumer", null)
+                    b.HasOne("InteractiveStand.Domain.Classes.Consumer", "Consumer")
                         .WithOne()
                         .HasForeignKey("InteractiveStand.Domain.Classes.Region", "ConsumerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("InteractiveStand.Domain.Classes.PowerSource", null)
+                    b.HasOne("InteractiveStand.Domain.Classes.PowerSource", "PowerSource")
                         .WithOne()
                         .HasForeignKey("InteractiveStand.Domain.Classes.Region", "PowerSourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Consumer");
+
+                    b.Navigation("PowerSource");
                 });
 #pragma warning restore 612, 618
         }

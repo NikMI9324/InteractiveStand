@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace InteractiveStand.Infrastructure.Migrations
+namespace InteractiveStand.Infrastructure.Mirgations
 {
     /// <inheritdoc />
     public partial class Init : Migration
@@ -13,20 +13,6 @@ namespace InteractiveStand.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "ConnectedRegions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RegionSourceId = table.Column<int>(type: "integer", nullable: false),
-                    RegionDestinationId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ConnectedRegions", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Consumers",
                 columns: table => new
@@ -88,35 +74,62 @@ namespace InteractiveStand.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "ConnectedRegions",
-                columns: new[] { "Id", "RegionDestinationId", "RegionSourceId" },
-                values: new object[,]
+            migrationBuilder.CreateTable(
+                name: "ConnectedRegions",
+                columns: table => new
                 {
-                    { 1, 2, 1 },
-                    { 2, 5, 1 },
-                    { 3, 8, 1 },
-                    { 4, 1, 2 },
-                    { 5, 3, 2 },
-                    { 6, 4, 2 },
-                    { 7, 5, 2 },
-                    { 8, 2, 3 },
-                    { 9, 4, 3 },
-                    { 10, 2, 4 },
-                    { 11, 3, 4 },
-                    { 12, 5, 4 },
-                    { 13, 10, 4 },
-                    { 14, 1, 5 },
-                    { 15, 2, 5 },
-                    { 16, 4, 5 },
-                    { 17, 6, 5 },
-                    { 18, 5, 6 },
-                    { 19, 7, 6 },
-                    { 20, 9, 6 },
-                    { 21, 6, 7 },
-                    { 22, 1, 8 },
-                    { 23, 6, 9 },
-                    { 24, 4, 10 }
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RegionSourceId = table.Column<int>(type: "integer", nullable: false),
+                    RegionDestinationId = table.Column<int>(type: "integer", nullable: false),
+                    SentFirstCategoryCapacity = table.Column<double>(type: "double precision", nullable: false),
+                    SentRemainingCapacity = table.Column<double>(type: "double precision", nullable: false),
+                    ReceivedFirstCategoryCapacity = table.Column<double>(type: "double precision", nullable: false),
+                    ReceivedRemainingCapacity = table.Column<double>(type: "double precision", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConnectedRegions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConnectedRegions_Regions_RegionDestinationId",
+                        column: x => x.RegionDestinationId,
+                        principalTable: "Regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ConnectedRegions_Regions_RegionSourceId",
+                        column: x => x.RegionSourceId,
+                        principalTable: "Regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PowerTransfers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WhoSentId = table.Column<int>(type: "integer", nullable: false),
+                    WhoReceivedId = table.Column<int>(type: "integer", nullable: false),
+                    SentCapacity = table.Column<double>(type: "double precision", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PowerTransfers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PowerTransfers_Regions_WhoReceivedId",
+                        column: x => x.WhoReceivedId,
+                        principalTable: "Regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PowerTransfers_Regions_WhoSentId",
+                        column: x => x.WhoSentId,
+                        principalTable: "Regions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -170,6 +183,57 @@ namespace InteractiveStand.Infrastructure.Migrations
                     { 10, 0.5, 10, "АЭК-ВИЭ", 10, 10.0 }
                 });
 
+            migrationBuilder.InsertData(
+                table: "ConnectedRegions",
+                columns: new[] { "Id", "ReceivedFirstCategoryCapacity", "ReceivedRemainingCapacity", "RegionDestinationId", "RegionSourceId", "SentFirstCategoryCapacity", "SentRemainingCapacity" },
+                values: new object[,]
+                {
+                    { 1, 0.0, 0.0, 2, 1, 0.0, 0.0 },
+                    { 2, 0.0, 0.0, 5, 1, 0.0, 0.0 },
+                    { 3, 0.0, 0.0, 8, 1, 0.0, 0.0 },
+                    { 4, 0.0, 0.0, 1, 2, 0.0, 0.0 },
+                    { 5, 0.0, 0.0, 3, 2, 0.0, 0.0 },
+                    { 6, 0.0, 0.0, 4, 2, 0.0, 0.0 },
+                    { 7, 0.0, 0.0, 5, 2, 0.0, 0.0 },
+                    { 8, 0.0, 0.0, 2, 3, 0.0, 0.0 },
+                    { 9, 0.0, 0.0, 4, 3, 0.0, 0.0 },
+                    { 10, 0.0, 0.0, 2, 4, 0.0, 0.0 },
+                    { 11, 0.0, 0.0, 3, 4, 0.0, 0.0 },
+                    { 12, 0.0, 0.0, 5, 4, 0.0, 0.0 },
+                    { 13, 0.0, 0.0, 10, 4, 0.0, 0.0 },
+                    { 14, 0.0, 0.0, 1, 5, 0.0, 0.0 },
+                    { 15, 0.0, 0.0, 2, 5, 0.0, 0.0 },
+                    { 16, 0.0, 0.0, 4, 5, 0.0, 0.0 },
+                    { 17, 0.0, 0.0, 6, 5, 0.0, 0.0 },
+                    { 18, 0.0, 0.0, 5, 6, 0.0, 0.0 },
+                    { 19, 0.0, 0.0, 7, 6, 0.0, 0.0 },
+                    { 20, 0.0, 0.0, 9, 6, 0.0, 0.0 },
+                    { 21, 0.0, 0.0, 6, 7, 0.0, 0.0 },
+                    { 22, 0.0, 0.0, 1, 8, 0.0, 0.0 },
+                    { 23, 0.0, 0.0, 6, 9, 0.0, 0.0 },
+                    { 24, 0.0, 0.0, 4, 10, 0.0, 0.0 }
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConnectedRegions_RegionDestinationId",
+                table: "ConnectedRegions",
+                column: "RegionDestinationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConnectedRegions_RegionSourceId",
+                table: "ConnectedRegions",
+                column: "RegionSourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PowerTransfers_WhoReceivedId",
+                table: "PowerTransfers",
+                column: "WhoReceivedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PowerTransfers_WhoSentId",
+                table: "PowerTransfers",
+                column: "WhoSentId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Regions_ConsumerId",
                 table: "Regions",
@@ -188,6 +252,9 @@ namespace InteractiveStand.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "ConnectedRegions");
+
+            migrationBuilder.DropTable(
+                name: "PowerTransfers");
 
             migrationBuilder.DropTable(
                 name: "Regions");

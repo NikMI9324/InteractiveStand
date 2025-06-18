@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\InteractiveStand.Infrastructure\InteractiveStand.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

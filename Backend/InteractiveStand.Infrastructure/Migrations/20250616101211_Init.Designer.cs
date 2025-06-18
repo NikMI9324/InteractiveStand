@@ -2,6 +2,7 @@
 using InteractiveStand.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InteractiveStand.Infrastructure.Mirgations
 {
     [DbContext(typeof(RegionDbContext))]
-    partial class RegionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250616101211_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -566,9 +569,6 @@ namespace InteractiveStand.Infrastructure.Mirgations
                     b.Property<double>("ProducedCapacity")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("TimeZoneOffset")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ConsumerId")
@@ -587,8 +587,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 1,
                             Name = "ОЭС 1",
                             PowerSourceId = 1,
-                            ProducedCapacity = 23.0,
-                            TimeZoneOffset = 3
+                            ProducedCapacity = 23.0
                         },
                         new
                         {
@@ -597,8 +596,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 2,
                             Name = "ОЭС 2",
                             PowerSourceId = 2,
-                            ProducedCapacity = 62.0,
-                            TimeZoneOffset = 3
+                            ProducedCapacity = 62.0
                         },
                         new
                         {
@@ -607,8 +605,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 3,
                             Name = "ОЭС 3",
                             PowerSourceId = 3,
-                            ProducedCapacity = 32.0,
-                            TimeZoneOffset = 3
+                            ProducedCapacity = 32.0
                         },
                         new
                         {
@@ -617,8 +614,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 4,
                             Name = "ОЭС 4",
                             PowerSourceId = 4,
-                            ProducedCapacity = 27.0,
-                            TimeZoneOffset = 4
+                            ProducedCapacity = 27.0
                         },
                         new
                         {
@@ -627,8 +623,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 5,
                             Name = "ОЭС 5",
                             PowerSourceId = 5,
-                            ProducedCapacity = 60.0,
-                            TimeZoneOffset = 5
+                            ProducedCapacity = 60.0
                         },
                         new
                         {
@@ -637,8 +632,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 6,
                             Name = "ОЭС 6",
                             PowerSourceId = 6,
-                            ProducedCapacity = 55.0,
-                            TimeZoneOffset = 7
+                            ProducedCapacity = 55.0
                         },
                         new
                         {
@@ -647,8 +641,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 7,
                             Name = "ОЭС 7",
                             PowerSourceId = 7,
-                            ProducedCapacity = 50.0,
-                            TimeZoneOffset = 10
+                            ProducedCapacity = 50.0
                         },
                         new
                         {
@@ -657,8 +650,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 8,
                             Name = "АЭК-ТИТЭС",
                             PowerSourceId = 8,
-                            ProducedCapacity = 15.0,
-                            TimeZoneOffset = 3
+                            ProducedCapacity = 15.0
                         },
                         new
                         {
@@ -667,8 +659,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 9,
                             Name = "АЭК-ПРОМ",
                             PowerSourceId = 9,
-                            ProducedCapacity = 15.0,
-                            TimeZoneOffset = 7
+                            ProducedCapacity = 15.0
                         },
                         new
                         {
@@ -677,8 +668,7 @@ namespace InteractiveStand.Infrastructure.Mirgations
                             ConsumerId = 10,
                             Name = "АЭК-ВИЭ",
                             PowerSourceId = 10,
-                            ProducedCapacity = 10.0,
-                            TimeZoneOffset = 4
+                            ProducedCapacity = 10.0
                         });
                 });
 

@@ -27,23 +27,22 @@ namespace InteractiveStand.Domain.Classes
         
         public double TotalPercentage => AESPercentage + GESPercentage + TESPercentage + VESPercentage + SESPercentage;
         public PowerSource() { }
-        //public PowerSource(double aesPercentage = 0.0, double gesPercentage = 0.0, double tesPercentage = 0.0,
-        //            double vesPercentage = 0.0, double sesPercentage = 0.0)
-        //{
-        //    AESPercentage = aesPercentage;
-        //    GESPercentage = gesPercentage;
-        //    TESPercentage = tesPercentage;
-        //    VESPercentage = vesPercentage;
-        //    SESPercentage = sesPercentage;
-        //}
 
         public double CalculateAvailableCapacity(double producedCapacity)
         {
             return AESPercentage * AESEfficiency * producedCapacity / 100 +
-                   GESPercentage * GESPercentage * producedCapacity / 100 +
-                   TESPercentage * TESPercentage * producedCapacity / 100 +
-                   VESPercentage * VESPercentage * producedCapacity / 100 +
-                   SESPercentage * SESPercentage * producedCapacity / 100;
+                   GESPercentage * GESEfficiency * producedCapacity / 100 +
+                   TESPercentage * TESEfficiency * producedCapacity / 100 +
+                   VESPercentage *   VESEffiency * producedCapacity / 100 +
+                   SESPercentage * SESEfficiency * producedCapacity / 100;
+        }
+        public double CalculateAvailableCapacityForFirstCategory(double producedCapacity)
+        {
+            double gasTESPercentage = TESPercentage * 0.25;
+            double availableCapacity = producedCapacity *    AESPercentage * AESEfficiency / 100 +
+                                       producedCapacity *    GESPercentage * GESEfficiency / 100 +
+                                       producedCapacity * gasTESPercentage * TESEfficiency / 100;
+            return availableCapacity;
         }
         public void RecalculatePercentages(double currentCapacity, double additionalCapacity, GenerationType type, bool reduce)
         {
