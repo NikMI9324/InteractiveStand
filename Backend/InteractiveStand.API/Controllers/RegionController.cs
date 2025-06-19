@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InteractiveStand.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/region")]
     public class RegionController : ControllerBase
     {
         private readonly IRegionService _regionService;

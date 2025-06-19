@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using InteractiveStand.Application.Hubs;
+using InteractiveStand.Application.Interfaces;
+using InteractiveStand.Application.Service;
+using InteractiveStand.Domain.Interfaces;
 using InteractiveStand.Infrastructure.Data;
 using InteractiveStand.Infrastructure.Repository;
-using InteractiveStand.Application.Interfaces;
-using InteractiveStand.Domain.Interfaces;
-using InteractiveStand.Application.Service;
-using Swashbuckle.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +16,18 @@ builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(builder.Configur
 builder.Services.AddScoped<IRegionService, RegionService>();
 builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
 builder.Services.AddScoped<IRegionRepository,RegionRepository>();
+builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
+builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -28,7 +39,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowAll");
+
+
 app.MapControllers();
+app.MapHub<EnergyDistributionHub>("/energyHub");
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

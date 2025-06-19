@@ -9,6 +9,7 @@ namespace InteractiveStand.Domain.Classes
 {
     public class Region
     {
+
         [Key]
         public int Id { get; set; }
         [Required]
@@ -23,11 +24,16 @@ namespace InteractiveStand.Domain.Classes
         public int ConsumerId { get; set; }
         [NotMapped]
         public Consumer? Consumer { get; set; }
-        public int TimeZoneOffset { get; set; } 
+        public int TimeZoneOffset { get; set; }
+        [NotMapped]
+        public double HourFraction { get; set; } = 0.0;
         [NotMapped]
         public double DailyConsumedCapacity => (ConsumedCapacity * 1000) / 365;
         [NotMapped]
-        public double DailyPeakConsumedCapacity => DailyConsumedCapacity / 16.86374;
+        public double HourlyPeakConsumedCapacity => DailyConsumedCapacity / 16.86374;
+        [NotMapped]
+        public double CurrentCapacityConsumption => 
+            CalculateHourlyConsumption(HourFraction);
         [NotMapped]
         public double HourlyProducedCapacity => 
             PowerSource?.CalculateAvailableCapacity(ProducedCapacity) ?? 0;
@@ -36,7 +42,7 @@ namespace InteractiveStand.Domain.Classes
             PowerSource?.CalculateAvailableCapacityForFirstCategory(ProducedCapacity) ?? 0;
         [NotMapped]
         public double FirstCategoryConsumedCapacity => 
-            DailyConsumedCapacity * (Consumer?.FirstPercentage ?? 0) / 100;
+            CurrentCapacityConsumption * (Consumer?.FirstPercentage ?? 0) / 100;
         [NotMapped]
         public double FirstCategoryDeficit => 
             FirstCategoryConsumedCapacity - FirstCategoryProducedCapacity;
@@ -45,7 +51,7 @@ namespace InteractiveStand.Domain.Classes
             (FirstCategoryProducedCapacity >= FirstCategoryConsumedCapacity ? 
             FirstCategoryConsumedCapacity : FirstCategoryProducedCapacity);
         [NotMapped]
-        public double RemainingConsumedCapacity => DailyConsumedCapacity - FirstCategoryConsumedCapacity;
+        public double RemainingConsumedCapacity => CalculateHourlyConsumption(HourFraction) - FirstCategoryConsumedCapacity;
         [NotMapped]
         public double RemainingDeficit => RemainingConsumedCapacity - RemainingProducedCapacity;
 
@@ -56,6 +62,14 @@ namespace InteractiveStand.Domain.Classes
                 return (false, false);
             }
             return (FirstCategoryDeficit <= 0, RemainingDeficit <= 0);
+        }
+        public double CalculateHourlyConsumption(double hourFraction)
+        {
+            double x = hourFraction;
+            double term1 = HourlyPeakConsumedCapacity / 4;
+            double term2 = (3 * HourlyPeakConsumedCapacity / 4) * Math.Exp(-Math.Pow((x - 7) / 4.25, 2));
+            double term3 = (3 * HourlyPeakConsumedCapacity / 4) * Math.Exp(-Math.Pow((x - 17) / 4.25, 2));
+            return term1 + term2 + term3;
         }
     }
 }
