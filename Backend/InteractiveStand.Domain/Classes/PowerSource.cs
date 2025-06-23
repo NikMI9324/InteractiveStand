@@ -44,7 +44,7 @@ namespace InteractiveStand.Domain.Classes
                                        producedCapacity * gasTESPercentage * TESEfficiency / 100;
             return availableCapacity;
         }
-        public void RecalculatePercentages(double currentCapacity, double additionalCapacity, GenerationType type, bool reduce)
+        public void RecalculatePercentages(double currentCapacity, double additionalCapacity, CapacityProducerType type, bool reduce)
         {
             if (reduce)
                 additionalCapacity *= (-1);
@@ -58,19 +58,19 @@ namespace InteractiveStand.Domain.Classes
             double currentSES = currentCapacity * SESPercentage / 100;
             switch (type)
             {
-                case GenerationType.AES:
+                case CapacityProducerType.AES:
                     currentAES += additionalCapacity;
                     break;
-                case GenerationType.GES:
+                case CapacityProducerType.GES:
                     currentGES += additionalCapacity;
                     break;
-                case GenerationType.TES:
+                case CapacityProducerType.TES:
                     currentTES += additionalCapacity;
                     break;
-                case GenerationType.VES:
+                case CapacityProducerType.VES:
                     currentVES += additionalCapacity;
                     break;
-                case GenerationType.SES:
+                case CapacityProducerType.SES:
                     currentSES += additionalCapacity;
                     break;
             }

@@ -1,7 +1,7 @@
 ﻿
 namespace InteractiveStand.Domain.Enums
 {
-    public enum GenerationType
+    public enum CapacityProducerType
     {
         TES,
         AES,
