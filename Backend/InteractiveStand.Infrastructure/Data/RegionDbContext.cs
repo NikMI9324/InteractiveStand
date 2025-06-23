@@ -1,4 +1,5 @@
 ﻿using InteractiveStand.Domain.Classes;
+using InteractiveStand.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace InteractiveStand.Infrastructure.Data
@@ -9,7 +10,8 @@ namespace InteractiveStand.Infrastructure.Data
         public DbSet<Consumer> Consumers { get; set; }
         public DbSet<PowerSource> PowerSources { get; set; }
         public DbSet<ConnectedRegion> ConnectedRegions { get; set; }
-        public DbSet<PowerTransfer> PowerTransfers { get; set; }
+        public DbSet<ConsumerBinding> ConsumerBindings { get; set; }
+        public DbSet<ProducerBinding> ProducerBindings { get; set; }
         public RegionDbContext(DbContextOptions<RegionDbContext> options) : base(options) 
         {
 
@@ -43,18 +45,22 @@ namespace InteractiveStand.Infrastructure.Data
                         .HasForeignKey(cr => cr.RegionDestinationId)
                         .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<PowerTransfer>()
-                        .HasKey(pt => pt.Id);
-            modelBuilder.Entity<PowerTransfer>()
-                        .HasOne<Region>()
+            modelBuilder.Entity<ProducerBinding>()
+                        .HasKey(pb => pb.Id);
+            modelBuilder.Entity<ProducerBinding>()
+                        .HasOne(pb => pb.Region)
                         .WithMany()
-                        .HasForeignKey(pt => pt.WhoReceivedId)
+                        .HasForeignKey(pb => pb.RegionId)
                         .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<PowerTransfer>()
-                        .HasOne<Region>()
+
+            modelBuilder.Entity<ConsumerBinding>()
+                        .HasKey(cb => cb.Id);
+            modelBuilder.Entity<ConsumerBinding>()
+                        .HasOne(cb => cb.Region)
                         .WithMany()
-                        .HasForeignKey(pt => pt.WhoSentId)
+                        .HasForeignKey(cb => cb.RegionId)
                         .OnDelete(DeleteBehavior.Restrict);
+            
 
 
             List<PowerSource> powerSources = new List<PowerSource> 
@@ -277,12 +283,91 @@ namespace InteractiveStand.Infrastructure.Data
                 new ConnectedRegion { Id = 23, RegionSourceId =  9, RegionDestinationId =  6 },
                 new ConnectedRegion { Id = 24, RegionSourceId = 10, RegionDestinationId =  4 }
             };
+            List<ProducerBinding> producerBindings = new List<ProducerBinding>() 
+            { 
+                new ProducerBinding { Id =  1, CapacityProducerType = CapacityProducerType.TES, RegionId =  1 },
+                new ProducerBinding { Id =  2, CapacityProducerType = CapacityProducerType.GES, RegionId =  1 },
+                new ProducerBinding { Id =  3, CapacityProducerType = CapacityProducerType.AES, RegionId =  1 },
+                new ProducerBinding { Id =  4, CapacityProducerType = CapacityProducerType.VES, RegionId =  1 },
+                new ProducerBinding { Id =  5, CapacityProducerType = CapacityProducerType.SES, RegionId =  1 },
+                new ProducerBinding { Id =  6, CapacityProducerType = CapacityProducerType.TES, RegionId =  2 },
+                new ProducerBinding { Id =  7, CapacityProducerType = CapacityProducerType.GES, RegionId =  2 },
+                new ProducerBinding { Id =  8, CapacityProducerType = CapacityProducerType.AES, RegionId =  2 },
+                new ProducerBinding { Id =  9, CapacityProducerType = CapacityProducerType.VES, RegionId =  2 },
+                new ProducerBinding { Id = 10, CapacityProducerType = CapacityProducerType.SES, RegionId =  2 },
+                new ProducerBinding { Id = 11, CapacityProducerType = CapacityProducerType.TES, RegionId =  3 },
+                new ProducerBinding { Id = 12, CapacityProducerType = CapacityProducerType.GES, RegionId =  3 },
+                new ProducerBinding { Id = 13, CapacityProducerType = CapacityProducerType.AES, RegionId =  3 },
+                new ProducerBinding { Id = 14, CapacityProducerType = CapacityProducerType.VES, RegionId =  3 },
+                new ProducerBinding { Id = 15, CapacityProducerType = CapacityProducerType.SES, RegionId =  3 },
+                new ProducerBinding { Id = 16, CapacityProducerType = CapacityProducerType.TES, RegionId =  4 },
+                new ProducerBinding { Id = 17, CapacityProducerType = CapacityProducerType.GES, RegionId =  4 },
+                new ProducerBinding { Id = 18, CapacityProducerType = CapacityProducerType.AES, RegionId =  4 },
+                new ProducerBinding { Id = 19, CapacityProducerType = CapacityProducerType.VES, RegionId =  4 },
+                new ProducerBinding { Id = 20, CapacityProducerType = CapacityProducerType.SES, RegionId =  4 },
+                new ProducerBinding { Id = 21, CapacityProducerType = CapacityProducerType.TES, RegionId =  5 },
+                new ProducerBinding { Id = 22, CapacityProducerType = CapacityProducerType.GES, RegionId =  5 },
+                new ProducerBinding { Id = 23, CapacityProducerType = CapacityProducerType.AES, RegionId =  5 },
+                new ProducerBinding { Id = 24, CapacityProducerType = CapacityProducerType.VES, RegionId =  5 },
+                new ProducerBinding { Id = 25, CapacityProducerType = CapacityProducerType.SES, RegionId =  6 },
+                new ProducerBinding { Id = 26, CapacityProducerType = CapacityProducerType.TES, RegionId =  6 },
+                new ProducerBinding { Id = 27, CapacityProducerType = CapacityProducerType.GES, RegionId =  6 },
+                new ProducerBinding { Id = 28, CapacityProducerType = CapacityProducerType.AES, RegionId =  6 },
+                new ProducerBinding { Id = 29, CapacityProducerType = CapacityProducerType.VES, RegionId =  6 },
+                new ProducerBinding { Id = 30, CapacityProducerType = CapacityProducerType.SES, RegionId =  6 },
+                new ProducerBinding { Id = 31, CapacityProducerType = CapacityProducerType.TES, RegionId =  7 },
+                new ProducerBinding { Id = 32, CapacityProducerType = CapacityProducerType.GES, RegionId =  7 },
+                new ProducerBinding { Id = 33, CapacityProducerType = CapacityProducerType.AES, RegionId =  7 },
+                new ProducerBinding { Id = 34, CapacityProducerType = CapacityProducerType.VES, RegionId =  7 },
+                new ProducerBinding { Id = 35, CapacityProducerType = CapacityProducerType.SES, RegionId =  7 },
+                new ProducerBinding { Id = 36, CapacityProducerType = CapacityProducerType.TES, RegionId =  8 },
+                new ProducerBinding { Id = 37, CapacityProducerType = CapacityProducerType.GES, RegionId =  8 },
+                new ProducerBinding { Id = 38, CapacityProducerType = CapacityProducerType.AES, RegionId =  8 },
+                new ProducerBinding { Id = 39, CapacityProducerType = CapacityProducerType.VES, RegionId =  8 },
+                new ProducerBinding { Id = 40, CapacityProducerType = CapacityProducerType.SES, RegionId =  8 },
+                new ProducerBinding { Id = 41, CapacityProducerType = CapacityProducerType.TES, RegionId =  9 },
+                new ProducerBinding { Id = 42, CapacityProducerType = CapacityProducerType.GES, RegionId =  9 },
+                new ProducerBinding { Id = 43, CapacityProducerType = CapacityProducerType.AES, RegionId =  9 },
+                new ProducerBinding { Id = 44, CapacityProducerType = CapacityProducerType.VES, RegionId =  9 },
+                new ProducerBinding { Id = 45, CapacityProducerType = CapacityProducerType.SES, RegionId =  9 },
+                new ProducerBinding { Id = 46, CapacityProducerType = CapacityProducerType.TES, RegionId = 10 },
+                new ProducerBinding { Id = 47, CapacityProducerType = CapacityProducerType.GES, RegionId = 10 },
+                new ProducerBinding { Id = 48, CapacityProducerType = CapacityProducerType.AES, RegionId = 10 },
+                new ProducerBinding { Id = 49, CapacityProducerType = CapacityProducerType.VES, RegionId = 10 },
+                new ProducerBinding { Id = 50, CapacityProducerType = CapacityProducerType.SES, RegionId = 10 }
+            };
+            List<ConsumerBinding> consumerBindings = new List<ConsumerBinding>() 
+            {
+                new ConsumerBinding{ Id =  1, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  1 },
+                new ConsumerBinding{ Id =  2, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  1 },
+                new ConsumerBinding{ Id =  3, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  2 },
+                new ConsumerBinding{ Id =  4, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  2 },
+                new ConsumerBinding{ Id =  5, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  3 },
+                new ConsumerBinding{ Id =  6, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  3 },
+                new ConsumerBinding{ Id =  7, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  4 },
+                new ConsumerBinding{ Id =  8, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  4 },
+                new ConsumerBinding{ Id =  9, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  5 },
+                new ConsumerBinding{ Id = 10, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  5 },
+                new ConsumerBinding{ Id = 11, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  6 },
+                new ConsumerBinding{ Id = 12, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  6 },
+                new ConsumerBinding{ Id = 13, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  7 },
+                new ConsumerBinding{ Id = 14, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  7 },
+                new ConsumerBinding{ Id = 15, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  8 },
+                new ConsumerBinding{ Id = 16, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  8 },
+                new ConsumerBinding{ Id = 17, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId =  9 },
+                new ConsumerBinding{ Id = 18, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId =  9 },
+                new ConsumerBinding{ Id = 19, CapacityConsumerType =     CapacityConsumerType.FirstCategory, RegionId = 10 },
+                new ConsumerBinding{ Id = 20, CapacityConsumerType = CapacityConsumerType.RemainingCategory, RegionId = 10 },
 
+            };
+
+            
             modelBuilder.Entity<PowerSource>().HasData(powerSources);
             modelBuilder.Entity<Consumer>().HasData(consumers);
             modelBuilder.Entity<ConnectedRegion>().HasData(connectedRegions);
             modelBuilder.Entity<Region>().HasData(regions);
-
+            modelBuilder.Entity<ProducerBinding>().HasData(producerBindings);
+            modelBuilder.Entity<ConsumerBinding>().HasData(consumerBindings);
         }
     }
 }
