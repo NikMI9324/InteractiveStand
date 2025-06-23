@@ -8,23 +8,68 @@ namespace InteractiveStand.API.Controllers
     public class EnergyController : ControllerBase
     {
         private readonly IPowerDistributionService _powerDistributionService;
+
         public EnergyController(IPowerDistributionService powerDistributionService)
         {
             _powerDistributionService = powerDistributionService ?? throw new ArgumentNullException(nameof(powerDistributionService));
         }
+
         [HttpPost("simulate/{speedFactor}")]
         public async Task<IActionResult> StartSimulation(int speedFactor, CancellationToken cancellationToken = default)
         {
-            await _powerDistributionService.StartSimulationAsync(speedFactor, cancellationToken);
-            return Ok("Simulation started");
+            try
+            {
+                await _powerDistributionService.StartSimulationAsync(speedFactor);
+                return Ok($"Simulation started with speed factor {speedFactor}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
+        [HttpPost("pause")]
+        public async Task<IActionResult> PauseSimulation()
+        {
+            try
+            {
+                await _powerDistributionService.PauseSimulationAsync();
+                return Ok("Simulation paused");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("resume")]
+        public async Task<IActionResult> ResumeSimulation()
+        {
+            try
+            {
+                await _powerDistributionService.ResumeSimulationAsync();
+                return Ok("Simulation resumed");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("stop")]
         public async Task<IActionResult> StopSimulation()
         {
-            await _powerDistributionService.StopSimulationAsync();
-            return Ok("Simulation stopped");
+            try
+            {
+                await _powerDistributionService.StopSimulationAsync();
+                return Ok("Simulation stopped");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        
+
         [HttpGet("logs")]
         public IActionResult GetSimulationLogs()
         {

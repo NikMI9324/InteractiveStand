@@ -9,9 +9,10 @@ namespace InteractiveStand.Application.Interfaces
 {
     public interface IPowerDistributionService
     {
-        Task DistributePowerAsync(int regionId);
-        Task StartSimulationAsync(int speedFactor, CancellationToken cancellationToken);
+        Task StartSimulationAsync(int speedFactor);
         Task StopSimulationAsync();
+        Task PauseSimulationAsync();
+        Task ResumeSimulationAsync();
         List<string> GetSimulationLogs();
     }
 }

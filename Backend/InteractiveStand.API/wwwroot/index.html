@@ -8,161 +8,302 @@
     <style>
         body {
             font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #ffffff;
+            background-color: #f5f5f5;
             color: #1a1a1a;
             margin: 0;
             padding: 0;
             line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 960px;
-            margin: 0 auto;
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             color: #2c3e50;
-            border-bottom: 1px solid #e0e0e0;
+            margin-top: 0;
             padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .log-section {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f8f8;
-            border-left: 4px solid #0078d4;
+            margin-bottom: 20px;
+            background-color: white;
             border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
-            .log-section h2 {
-                font-size: 1.5em;
-                color: #0078d4;
-                margin-top: 0;
-            }
+        .log-header {
+            background-color: #0078d4;
+            color: white;
+            padding: 10px 15px;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-            .log-section div {
-                margin: 5px 0;
-                word-wrap: break-word;
-            }
+        .log-content {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px 15px;
+        }
 
-        .controls {
-            margin: 20px 0;
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            word-wrap: break-word;
         }
 
         select {
+            width: 100%;
             padding: 10px;
-            margin-right: 10px;
+            margin-bottom: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 1em;
+            background-color: white;
         }
 
         button {
+            width: 100%;
             background-color: #0078d4;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 5px;
+            padding: 12px;
+            margin-bottom: 10px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 1em;
+            transition: background-color 0.3s;
         }
 
             button:hover {
                 background-color: #005bb5;
             }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            button:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
             }
 
-            h1 {
-                font-size: 2em;
+        .sidebar-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .log-content {
+                height: 150px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Energy Simulation - Interactive Stand</h1>
+        <div class="sidebar">
+            <div class="sidebar-title">Controls</div>
 
-        <div class="log-section">
-            <h2>Simulation Logs</h2>
-            <div id="simulationLogs"></div>
-        </div>
-
-        <div class="log-section">
-            <h2>Distribution Logs</h2>
-            <div id="distributionLogs"></div>
-        </div>
-
-        <div class="log-section">
-            <h2>Connection Status</h2>
-            <div id="connectionStatus"></div>
-        </div>
-
-        <div class="controls">
             <select id="speedFactor">
-                <option value="1">1x (5 sec/step)</option>
-                <option value="6">6x (30 sec/step)</option>
-                <option value="60">60x (300 sec/step)</option>
-                <option value="360">360x (1800 sec/step)</option>
-                <option value="600">600x (3000 sec/step)</option>
-                <option value="720">720x (3600 sec/step)</option>
+                <option value="1">1 sec/sec</option>
+                <option value="60">1 min/sec</option>
+                <option value="2400">40 min/sec</option>
+                <option value="3600">1 hour/sec</option>
+                <option value="7200">2 hours/sec</option>
+                <option value="18000">5 hours/sec</option>
             </select>
-            <button id="startSimulation">Начать симуляцию</button>
-            <button id="stopBtn">Остановить</button>
-            <button id="resetBtn">Ресет</button>
+
+            <button id="startSimulation">Start Simulation</button>
+            <button id="pauseSimulation" disabled>Pause</button>
+            <button id="resumeSimulation" disabled>Resume</button>
+            <button id="stopBtn" disabled>Stop</button>
+            <button id="resetBtn">Reset Data</button>
+        </div>
+
+        <div class="main-content">
+            <h1>Energy Simulation - Interactive Stand</h1>
+
+            <div class="log-section">
+                <div class="log-header">
+                    <span>Simulation Logs</span>
+                    <button id="clearSimulationLogs" style="width: auto; padding: 5px 10px;">Clear</button>
+                </div>
+                <div class="log-content" id="simulationLogs"></div>
+            </div>
+
+            <div class="log-section">
+                <div class="log-header">
+                    <span>Distribution Logs</span>
+                    <button id="clearDistributionLogs" style="width: auto; padding: 5px 10px;">Clear</button>
+                </div>
+                <div class="log-content" id="distributionLogs"></div>
+            </div>
+
+            <div class="log-section">
+                <div class="log-header">
+                    <span>Connection Status</span>
+                    <button id="clearConnectionStatus" style="width: auto; padding: 5px 10px;">Clear</button>
+                </div>
+                <div class="log-content" id="connectionStatus"></div>
+            </div>
         </div>
     </div>
 
     <script>
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/energyHub")
+            .configureLogging(signalR.LogLevel.Information)
             .build();
 
+        // Элементы управления
+        const startBtn = document.getElementById("startSimulation");
+        const pauseBtn = document.getElementById("pauseSimulation");
+        const resumeBtn = document.getElementById("resumeSimulation");
+        const stopBtn = document.getElementById("stopBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const clearSimulationLogs = document.getElementById("clearSimulationLogs");
+        const clearDistributionLogs = document.getElementById("clearDistributionLogs");
+        const clearConnectionStatus = document.getElementById("clearConnectionStatus");
+
+        // Функция для обновления состояния кнопок
+        function updateButtons(isRunning, isPaused) {
+            startBtn.disabled = isRunning && !isPaused;
+            pauseBtn.disabled = !isRunning || isPaused;
+            resumeBtn.disabled = !isRunning || !isPaused;
+            stopBtn.disabled = !isRunning;
+        }
+
+        // Начальное состояние - симуляция остановлена
+        updateButtons(false, false);
+
+        // Обработчики событий SignalR
         connection.on("ReceiveSimulationUpdate", (message) => {
             const div = document.createElement("div");
-            div.innerText = new Date().toLocaleTimeString() + ": " + message;
-            document.getElementById("simulationLogs").appendChild(div);
+            div.className = "log-entry";
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            document.getElementById("simulationLogs").prepend(div);
+        });
+
+        connection.on("SimulationFinished", () => {
+            updateButtons(false, false);
+            alert("Симуляция завершена");
         });
 
         connection.on("ReceiveDistributionUpdate", (message) => {
             const div = document.createElement("div");
-            div.innerText = new Date().toLocaleTimeString() + ": " + message;
-            document.getElementById("distributionLogs").appendChild(div);
+            div.className = "log-entry";
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            document.getElementById("distributionLogs").prepend(div);
         });
 
         connection.on("ReceiveConnectionUpdate", (connections) => {
             const div = document.createElement("div");
-            div.innerText = "Connections: " + JSON.stringify(connections, null, 2);
-            document.getElementById("connectionStatus").innerHTML = "";
-            document.getElementById("connectionStatus").appendChild(div);
+            div.className = "log-entry";
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> Connections updated`;
+            const details = document.createElement("pre");
+            details.textContent = JSON.stringify(connections, null, 2);
+            div.appendChild(details);
+            document.getElementById("connectionStatus").prepend(div);
         });
 
+        // Функции управления симуляцией
         async function startSimulation(speedFactor) {
             try {
                 if (connection.state !== signalR.HubConnectionState.Connected) {
                     await connection.start();
-                    console.log("Connected to SignalR Hub");
+                    console.log("Подключено к SignalR Hub");
                 }
 
-                await fetch(`/api/energy/simulate/${speedFactor}`, {
+                const response = await fetch(`/api/energy/simulate/${speedFactor}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     }
                 });
+
+                if (response.ok) {
+                    updateButtons(true, false);
+                } else {
+                    throw new Error("Ошибка сервера");
+                }
             } catch (err) {
-                console.error("Error:", err);
+                console.error("Ошибка:", err);
+                alert("Не удалось начать симуляцию: " + err.message);
+            }
+        }
+
+        async function pauseSimulation() {
+            try {
+                const response = await fetch("/api/energy/pause", { method: "POST" });
+                if (response.ok) {
+                    updateButtons(true, true);
+                }
+            } catch (err) {
+                console.error("Ошибка:", err);
+                alert("Не удалось поставить на паузу: " + err.message);
+            }
+        }
+
+        async function resumeSimulation() {
+            try {
+                const response = await fetch("/api/energy/resume", { method: "POST" });
+                if (response.ok) {
+                    updateButtons(true, false);
+                }
+            } catch (err) {
+                console.error("Ошибка:", err);
+                alert("Не удалось возобновить: " + err.message);
             }
         }
 
         async function stopSimulation() {
-            await fetch("/api/energy/stop", { method: "POST" });
+            try {
+                const response = await fetch("/api/energy/stop", { method: "POST" });
+                if (response.ok) {
+                    updateButtons(false, false);
+                }
+            } catch (err) {
+                console.error("Ошибка:", err);
+                alert("Не удалось остановить: " + err.message);
+            }
         }
 
         async function resetData() {
@@ -170,34 +311,53 @@
                 const response = await fetch("/api/region/reset", { method: "POST" });
                 const data = await response.text();
                 const div = document.createElement("div");
-                div.innerText = new Date().toLocaleTimeString() + ": " + data;
-                document.getElementById("simulationLogs").appendChild(div);
+                div.className = "log-entry";
+                div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${data}`;
+                document.getElementById("simulationLogs").prepend(div);
             } catch (err) {
-                console.error("Error:", err);
+                console.error("Ошибка:", err);
+                alert("Не удалось сбросить данные: " + err.message);
             }
         }
 
-        // Привязка событий к кнопкам
-        document.getElementById("startSimulation").addEventListener("click", () => {
+        // Назначение обработчиков событий
+        startBtn.addEventListener("click", () => {
             const speedFactor = document.getElementById("speedFactor").value;
             startSimulation(speedFactor);
         });
 
-        document.getElementById("stopBtn").addEventListener("click", stopSimulation);
-        document.getElementById("resetBtn").addEventListener("click", resetData);
+        pauseBtn.addEventListener("click", pauseSimulation);
+        resumeBtn.addEventListener("click", resumeSimulation);
+        stopBtn.addEventListener("click", stopSimulation);
+        resetBtn.addEventListener("click", resetData);
 
-        // Эмуляция нажатия кнопки по эндпоинту через SignalR
-        connection.on("triggerSimulation", (data) => {
-            const { speedFactor } = data;
-            if (speedFactor && !isNaN(speedFactor)) {
-                document.getElementById("speedFactor").value = speedFactor;
-                document.getElementById("startSimulation").click(); // Эмуляция нажатия кнопки
-                console.log(`Triggered simulation with speedFactor ${speedFactor} via SignalR`);
-            }
+        clearSimulationLogs.addEventListener("click", () => {
+            document.getElementById("simulationLogs").innerHTML = '';
         });
 
-        // Автозапуск при загрузке (опционально)
-        connection.start().catch(err => console.error(err));
+        clearDistributionLogs.addEventListener("click", () => {
+            document.getElementById("distributionLogs").innerHTML = '';
+        });
+
+        clearConnectionStatus.addEventListener("click", () => {
+            document.getElementById("connectionStatus").innerHTML = '';
+        });
+
+        async function startConnection() {
+            try {
+                await connection.start();
+                console.log("SignalR подключен");
+            } catch (err) {
+                console.error("Ошибка подключения SignalR:", err);
+                setTimeout(startConnection, 5000);
+            }
+        }
+
+        connection.onclose(async () => {
+            await startConnection();
+        });
+
+        startConnection();
     </script>
 </body>
 </html>

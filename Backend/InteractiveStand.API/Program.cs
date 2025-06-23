@@ -16,7 +16,9 @@ builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(builder.Configur
 builder.Services.AddScoped<IRegionService, RegionService>();
 builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
 builder.Services.AddScoped<IRegionRepository,RegionRepository>();
-builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
+
+
+builder.Services.AddSingleton<IPowerDistributionService, PowerDistributionService>();
 builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
