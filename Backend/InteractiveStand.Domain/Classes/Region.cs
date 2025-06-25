@@ -26,43 +26,9 @@ namespace InteractiveStand.Domain.Classes
         public Consumer? Consumer { get; set; }
         public int TimeZoneOffset { get; set; }
         [NotMapped]
-        public double HourFraction { get; set; } = 0.0;
-        [NotMapped]
         public double DailyConsumedCapacity => (ConsumedCapacity * 1000) / 365;
         [NotMapped]
         public double HourlyPeakConsumedCapacity => DailyConsumedCapacity / 16.86374;
-        [NotMapped]
-        public double CurrentCapacityConsumption => 
-            CalculateHourlyConsumption(HourFraction);
-        [NotMapped]
-        public double HourlyProducedCapacity => 
-            PowerSource?.CalculateAvailableCapacity(ProducedCapacity) ?? 0;
-        [NotMapped]
-        public double FirstCategoryProducedCapacity => 
-            PowerSource?.CalculateAvailableCapacityForFirstCategory(ProducedCapacity) ?? 0;
-        [NotMapped]
-        public double FirstCategoryConsumedCapacity => 
-            CurrentCapacityConsumption * (Consumer?.FirstPercentage ?? 0) / 100;
-        [NotMapped]
-        public double FirstCategoryDeficit => 
-            FirstCategoryConsumedCapacity - FirstCategoryProducedCapacity;
-        [NotMapped]
-        public double RemainingProducedCapacity => HourlyProducedCapacity - 
-            (FirstCategoryProducedCapacity >= FirstCategoryConsumedCapacity ? 
-            FirstCategoryConsumedCapacity : FirstCategoryProducedCapacity);
-        [NotMapped]
-        public double RemainingConsumedCapacity => CalculateHourlyConsumption(HourFraction) - FirstCategoryConsumedCapacity;
-        [NotMapped]
-        public double RemainingDeficit => RemainingConsumedCapacity - RemainingProducedCapacity;
-
-        public (bool IsEnoughForFirstCategory, bool IsEnoughRemaining) GetCapacityStatus()
-        {
-            if (PowerSource == null || Consumer == null)
-            {
-                return (false, false);
-            }
-            return (FirstCategoryDeficit <= 0, RemainingDeficit <= 0);
-        }
         public double CalculateHourlyConsumption(double hourFraction)
         {
             double x = hourFraction;

@@ -58,19 +58,19 @@ namespace InteractiveStand.Domain.Classes
             double currentSES = currentCapacity * SESPercentage / 100;
             switch (type)
             {
-                case CapacityProducerType.AES:
+                case CapacityProducerType.PROD_NPP:
                     currentAES += additionalCapacity;
                     break;
-                case CapacityProducerType.GES:
+                case CapacityProducerType.PROD_HPP:
                     currentGES += additionalCapacity;
                     break;
-                case CapacityProducerType.TES:
+                case CapacityProducerType.PROD_CGPP:
                     currentTES += additionalCapacity;
                     break;
-                case CapacityProducerType.VES:
+                case CapacityProducerType.PROD_WPP:
                     currentVES += additionalCapacity;
                     break;
-                case CapacityProducerType.SES:
+                case CapacityProducerType.PROD_SPP:
                     currentSES += additionalCapacity;
                     break;
             }

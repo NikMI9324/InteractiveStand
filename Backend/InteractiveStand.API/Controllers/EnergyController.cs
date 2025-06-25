@@ -70,11 +70,5 @@ namespace InteractiveStand.API.Controllers
             }
         }
 
-        [HttpGet("logs")]
-        public IActionResult GetSimulationLogs()
-        {
-            var logs = _powerDistributionService.GetSimulationLogs();
-            return Ok(new { Logs = logs });
-        }
     }
 }

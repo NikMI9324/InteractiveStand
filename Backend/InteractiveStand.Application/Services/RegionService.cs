@@ -4,7 +4,7 @@ using InteractiveStand.Application.Mapper;
 using InteractiveStand.Domain.Classes;
 using InteractiveStand.Domain.Interfaces;
 
-namespace InteractiveStand.Application.Service
+namespace InteractiveStand.Application.Services
 {
     public class RegionService : IRegionService
     {
@@ -32,22 +32,6 @@ namespace InteractiveStand.Application.Service
         public async Task<List<Region>> GetRegionsAsync()
         {
             return await _regionRepo.GetAllRegionsAsync();
-        }
-        public async Task<List<RegionStatusGetDto>> GetProblemRegionStatus()
-        {
-            var regions = await _regionRepo.GetAllRegionsAsync();
-
-            var problemRegions = regions
-                .Where(region =>
-                {
-                    var status = region.GetCapacityStatus();
-                    return !status.IsEnoughForFirstCategory || !status.IsEnoughRemaining;
-                })
-                .Select(region => region.ToRegionStatusDto())
-                .ToList();
-
-            return problemRegions;
-
         }
 
         public async Task AddConsumedCapacity(int regionId, double additionalConsumedCapacity)

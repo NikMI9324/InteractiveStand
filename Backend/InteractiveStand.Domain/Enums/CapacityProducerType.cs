@@ -3,10 +3,10 @@ namespace InteractiveStand.Domain.Enums
 {
     public enum CapacityProducerType
     {
-        TES,
-        AES,
-        GES,
-        VES,
-        SES
+        PROD_CGPP,
+        PROD_NPP,
+        PROD_HPP,
+        PROD_WPP,
+        PROD_SPP
     }
 }

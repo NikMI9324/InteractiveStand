@@ -47,25 +47,6 @@ namespace InteractiveStand.API.Controllers
             }
 
         }
-        [HttpGet("status")]
-        public async Task<IActionResult> GetStatus()
-        {
-            try
-            {
-                var problemRegions = await _regionService.GetProblemRegionStatus();
-
-                if (problemRegions == null || problemRegions.Count == 0)
-                {
-                    return Ok("Все регионы работают в штатном режиме.");
-                }
-
-                return Ok(problemRegions);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Ошибка сервера при получении статусов регионов: {ex.Message}");
-            }
-        }
         [HttpPut("update/powersource/{regionId:int}")]
         public async Task<IActionResult> UpdatePowerSource([FromRoute] int regionId, [FromBody] PowerSourceUpdateCapacityDto dto)
         {

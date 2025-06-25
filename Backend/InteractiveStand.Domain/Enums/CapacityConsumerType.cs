@@ -8,7 +8,7 @@ namespace InteractiveStand.Domain.Enums
 {
     public enum CapacityConsumerType
     {
-        FirstCategory,
-        RemainingCategory
+        CON_FIRST,
+        CON_OTHER
     }
 }

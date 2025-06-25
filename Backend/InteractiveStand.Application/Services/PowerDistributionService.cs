@@ -1,7 +1,6 @@
 ﻿using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
 using InteractiveStand.Application.RegionMetricsClass;
-using InteractiveStand.Application.State;
 using InteractiveStand.Domain.Classes;
 using InteractiveStand.Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
@@ -12,7 +11,7 @@ using System.Data;
 using System.Text.Json;
 
 
-namespace InteractiveStand.Application.Service
+namespace InteractiveStand.Application.Services
 {
     
     public class PowerDistributionService : IPowerDistributionService, IDisposable
@@ -368,7 +367,6 @@ namespace InteractiveStand.Application.Service
         }
         private async Task SendSimulationUpdate(string message, CancellationToken cancellationToken)
         {
-            PowerDistributionState.SimulationLogs.Add(message);
             await _hubContext.Clients.All.SendAsync(
                 "ReceiveSimulationUpdate",
                 message,
@@ -380,10 +378,7 @@ namespace InteractiveStand.Application.Service
             double simulationTimeSeconds,
             CancellationToken cancellationToken)
         {
-            string update = $"Connections updated at {FormatTime(simulationTimeSeconds)} " +
-                           $"(GMT{region.TimeZoneOffset:+#;-#;0}): {JsonSerializer.Serialize(connections)}";
 
-            PowerDistributionState.SimulationLogs.Add(update);
             await _hubContext.Clients.All.SendAsync(
                 "ReceiveConnectionUpdate",
                 connections,
@@ -489,10 +484,6 @@ namespace InteractiveStand.Application.Service
             int minutes = (int)((seconds % 3600) / 60);
             int secs = (int)(seconds % 60);
             return $"{hours:00}:{minutes:00}:{secs:00}";
-        }
-        public List<string> GetSimulationLogs()
-        {
-            return PowerDistributionState.SimulationLogs.ToList();
         }
     }
 }
