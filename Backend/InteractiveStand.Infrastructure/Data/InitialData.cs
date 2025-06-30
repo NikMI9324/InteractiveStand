@@ -152,74 +152,74 @@ namespace InteractiveStand.Infrastructure.Data
             new PowerSource
             {
                 Id = 1,
-                AESPercentage = 25.0,
-                GESPercentage = 4.0,
-                TESPercentage = 71.0
+                NPP_Percentage = 25.0,
+                HPP_Percentage = 4.0,
+                CGPP_Percentage = 71.0
             },
             new PowerSource
             {
                 Id = 2,
-                AESPercentage = 15.0,
-                GESPercentage = 25.0,
-                TESPercentage = 59.0,
-                VESPercentage = 0.3,
-                SESPercentage = 0.7
+                NPP_Percentage = 15.0,
+                HPP_Percentage = 25.0,
+                CGPP_Percentage = 59.0,
+                WPP_Percentage = 0.3,
+                SPP_Percentage = 0.7
             },
             new PowerSource
             {
                 Id = 3,
-                TESPercentage = 92.0,
-                GESPercentage = 4.0,
-                AESPercentage = 3.0,
-                SESPercentage = 1.0
+                CGPP_Percentage = 92.0,
+                HPP_Percentage = 4.0,
+                NPP_Percentage = 3.0,
+                SPP_Percentage = 1.0
             },
             new PowerSource
             {
                 Id = 4,
-                TESPercentage = 63.0,
-                GESPercentage = 12.0,
-                AESPercentage = 24.0,
-                VESPercentage = 1.0
+                CGPP_Percentage = 63.0,
+                HPP_Percentage = 12.0,
+                NPP_Percentage = 24.0,
+                WPP_Percentage = 1.0
             },
             new PowerSource
             {
                 Id = 5,
-                AESPercentage = 23.0,
-                GESPercentage = 15.0,
-                TESPercentage = 50.0,
-                VESPercentage = 8.0,
-                SESPercentage = 4.0
+                NPP_Percentage = 23.0,
+                HPP_Percentage = 15.0,
+                CGPP_Percentage = 50.0,
+                WPP_Percentage = 8.0,
+                SPP_Percentage = 4.0
             },
             new PowerSource
             {
                 Id = 6,
-                GESPercentage = 48.0,
-                TESPercentage = 51.0,
-                SESPercentage = 1
+                HPP_Percentage = 48.0,
+                CGPP_Percentage = 51.0,
+                SPP_Percentage = 1
             },
             new PowerSource
             {
                 Id = 7,
-                GESPercentage = 41.0,
-                TESPercentage = 59.0
+                HPP_Percentage = 41.0,
+                CGPP_Percentage = 59.0
             },
             new PowerSource
             {
                 Id = 8,
-                AESPercentage = 2.0,
-                GESPercentage = 48.0,
-                TESPercentage = 50.0
+                NPP_Percentage = 2.0,
+                HPP_Percentage = 48.0,
+                CGPP_Percentage = 50.0
             },
             new PowerSource
             {
                 Id = 9,
-                TESPercentage = 50.0,
-                SESPercentage = 50.0
+                CGPP_Percentage = 50.0,
+                SPP_Percentage = 50.0
             },
             new PowerSource
             {
                 Id = 10,
-                VESPercentage = 100.0,
+                WPP_Percentage = 100.0,
             }
         };
 

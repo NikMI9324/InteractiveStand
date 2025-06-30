@@ -1,5 +1,4 @@
-﻿using InteractiveStand.Application.EnumExtensions;
-using InteractiveStand.Application.EspMessages;
+﻿using InteractiveStand.Application.EspMessages;
 using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
 using InteractiveStand.Domain.Enums;
@@ -68,12 +67,15 @@ namespace InteractiveStand.Application.Services
             }
             else if(existingConsumerBinding == null && existingProducerBinding == null)
             {
-                var newConsumerBinding = await dbContext.ConsumerBindings
-                    .FirstOrDefaultAsync(cb => cb.RegionId == connectMessage.RegionId 
+                if(isConsumer)
+                {
+                    var newConsumerBinding = await dbContext.ConsumerBindings
+                    .FirstOrDefaultAsync(cb => cb.RegionId == connectMessage.RegionId
                                                && cb.CapacityConsumerType == consumerModuleType, cancellationToken);
-                if (newConsumerBinding != null)
-                    newConsumerBinding.MacAddress = connectMessage.Mac;
-                else
+                    if (newConsumerBinding != null)
+                        newConsumerBinding.MacAddress = connectMessage.Mac;
+                }
+                if(isProducer)
                 {
                     var newProducerBinding = await dbContext.ProducerBindings
                         .FirstOrDefaultAsync(pb => pb.RegionId == connectMessage.RegionId 

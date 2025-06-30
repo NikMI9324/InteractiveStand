@@ -13,12 +13,15 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+//builder.Services.AddSingleton<MqttService>();
+builder.Services.AddSingleton<IMqttService, MqttService>();
 builder.Services.AddHostedService<MqttService>();
 
 builder.Services.AddScoped<IRegionService, RegionService>();
 builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
 builder.Services.AddScoped<IRegionRepository,RegionRepository>();
 builder.Services.AddScoped<IConnectMessageHandler, ConnectMessageHandler>();
+builder.Services.AddScoped<IUpdateMessageHandler, UpdateMessagehandler>();
 
 builder.Services.AddSingleton<IPowerDistributionService, PowerDistributionService>();
 builder.Services.AddSignalR();
@@ -27,9 +30,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://192.168.205.117:5173")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 

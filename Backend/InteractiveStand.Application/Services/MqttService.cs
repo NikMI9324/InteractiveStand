@@ -1,6 +1,8 @@
 ﻿using InteractiveStand.Application.EspMessages;
 using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
+using InteractiveStand.Domain.Classes;
+using InteractiveStand.Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +26,7 @@ namespace InteractiveStand.Application.Services
             _mqttClient = factory.CreateMqttClient();
 
             _mqttOptions = new MqttClientOptionsBuilder()
-                                .WithTcpServer("192.168.78.183", 1883)
+                                .WithTcpServer("192.168.205.183", 1883)
                                 .WithCredentials("hello", "hello")
                                 .Build();
             _mqttClient.ApplicationMessageReceivedAsync += HandleMessageAsync;
@@ -36,23 +38,22 @@ namespace InteractiveStand.Application.Services
             var topic = args.ApplicationMessage.Topic;
             var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
             using var scope = _serviceScopeFactory.CreateScope();
-            //if (topic == "esp/update")
-            //{
-            //    var message = JsonSerializer.Deserialize<EspUpdateMessage>(payload);
-            //    if (message != null)
-            //        await _updateHandler.HandleAsync(message, CancellationToken.None);
-            //}
-            /*else */
-            if (topic == "esp/connect")
+            if (topic == "esp/update")
+            {
+                var message = JsonSerializer.Deserialize<EspUpdateMessage>(payload);
+                if (message == null) return;
+                var updateHandler = scope.ServiceProvider.GetRequiredService<IUpdateMessageHandler>();
+                await updateHandler.HandleAsync(message, CancellationToken.None);
+            }
+            else if (topic == "esp/connect")
             {
                 var message = JsonSerializer.Deserialize<EspConnectMessage>(payload);
-                if(message == null)
-                    return;
+                if(message == null) return;
                 var connectHandler = scope.ServiceProvider.GetRequiredService<IConnectMessageHandler>();
                 await connectHandler.HandleAsync(message, CancellationToken.None);
             }
         }
-
+        
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await StartAsync(stoppingToken);
@@ -85,6 +86,20 @@ namespace InteractiveStand.Application.Services
             {
                 await _mqttClient.DisconnectAsync(cancellationToken: cancellationToken);
             }
+        }
+
+        public async Task PublishProducedCapacityAsync(ProducerBinding producerBinding, PowerSource powerSource, CancellationToken cancellationToken)
+        {
+            if (!_mqttClient.IsConnected || string.IsNullOrWhiteSpace(producerBinding.MacAddress))
+                return;
+            var currentCapacity = powerSource.GetProducerCapacity(producerBinding.CapacityProducerType);
+            var message = new { power = currentCapacity };
+            var payload = JsonSerializer.Serialize(message);
+
+            await _mqttClient.PublishAsync(new MqttApplicationMessageBuilder()
+                .WithTopic($"producer/{producerBinding.MacAddress}")
+                .WithPayload(Encoding.UTF8.GetBytes(payload))
+                .Build(), cancellationToken);
         }
     }
 }

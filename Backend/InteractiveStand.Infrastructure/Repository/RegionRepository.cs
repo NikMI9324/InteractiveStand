@@ -32,17 +32,6 @@ namespace InteractiveStand.Infrastructure.Repository
             return consumer;
         }
 
-        public async Task<Region> GetFullInfoRegionByIdAsync(int regionId)
-        {
-            var region = await _context.Regions
-                                       .Include(r => r.Consumer)
-                                       .Include(r => r.PowerSource)
-                                       .FirstOrDefaultAsync(r => r.Id == regionId);
-            if(region is null)
-                throw new KeyNotFoundException($"Region with ID {regionId} not found.");
-            return region;
-        }
-
         public async Task<PowerSource> GetPowerSourceByIdAsync(int id)
         {
             var powerSource = await _context.PowerSources.FirstOrDefaultAsync(ps => ps.Id == id);
@@ -53,35 +42,42 @@ namespace InteractiveStand.Infrastructure.Repository
             return powerSource;
         }
 
-        public async Task<Region> GetRegionByIdAsync(int id)
+        public async Task<Region> GetRegionByIdAsync(int regionId)
         {
             var region = await _context.Regions
                                        .Include(r => r.Consumer)
                                        .Include(r => r.PowerSource)
-                                       .FirstOrDefaultAsync(r => r.Id == id);
+                                       .FirstOrDefaultAsync(r => r.Id == regionId);
             if (region is null)
             {
-                throw new KeyNotFoundException($"Region with ID {id} not found.");
+                throw new KeyNotFoundException($"Region with ID {regionId} not found.");
             }
             if(region.Consumer is null || region.PowerSource is null)
             {
-                throw new InvalidOperationException($"Region {id} must have both a consumer and a power source.");
+                throw new InvalidOperationException($"Region {regionId} must have both a consumer and a power source.");
             }
             return region;
         }
+        private async Task UpsertRangeAsync<T>(DbSet<T> dbSet, IEnumerable<T> newData) where T: class
+        {
+            foreach(var entity in newData)
+            {
+                var id = _context.Entry(entity).Property("Id").CurrentValue;
+                var existing = await dbSet.FindAsync(id);
+                if (existing != null)
+                    _context.Entry(existing).CurrentValues.SetValues(entity);
+                else
+                    await dbSet.AddAsync(entity);
+            }
+        }
+
 
         public async Task ResetDataAsync()
         {
-            _context.ConnectedRegions.RemoveRange(_context.ConnectedRegions);
-            _context.Regions.RemoveRange(_context.Regions);
-            _context.PowerSources.RemoveRange(_context.PowerSources);
-            _context.Consumers.RemoveRange(_context.Consumers);
-
-            await _context.SaveChangesAsync();
-            await _context.PowerSources.AddRangeAsync(InitialData.PowerSources);
-            await _context.Consumers.AddRangeAsync(InitialData.Consumers);
-            await _context.Regions.AddRangeAsync(InitialData.Regions);
-            await _context.ConnectedRegions.AddRangeAsync(InitialData.ConnectedRegions);
+            await UpsertRangeAsync(_context.PowerSources, InitialData.PowerSources);
+            await UpsertRangeAsync(_context.Consumers, InitialData.Consumers);
+            await UpsertRangeAsync(_context.Regions, InitialData.Regions);
+            await UpsertRangeAsync(_context.ConnectedRegions, InitialData.ConnectedRegions);
             await _context.SaveChangesAsync();
         }
 
@@ -97,10 +93,32 @@ namespace InteractiveStand.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateRegion(Region region)
+        public async Task UpdateRegionAsync(Region region)
         {
             _context.Regions.Update(region);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task ResetConnectedRegionCapacityValuesAsync()
+        {
+            var connectedRegions = _context.ConnectedRegions.ToListAsync();
+            foreach(var cr in connectedRegions.Result)
+            {
+                cr.ReceivedFirstCategoryCapacity = 0;
+                cr.SentFirstCategoryCapacity = 0;
+                cr.ReceivedRemainingCapacity = 0;
+                cr.SentRemainingCapacity = 0;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(int regionId, CancellationToken token)
+        {
+            return await _context.ProducerBindings
+                    .Where(pb => pb.RegionId == regionId)
+                    .Include(pb => pb.Region)
+                        .ThenInclude(r => r.PowerSource)
+                    .ToListAsync(token);
         }
     }
 }

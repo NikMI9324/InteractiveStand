@@ -3,6 +3,7 @@ using InteractiveStand.Application.Interfaces;
 using InteractiveStand.Application.Mapper;
 using InteractiveStand.Domain.Classes;
 using InteractiveStand.Domain.Interfaces;
+using System.Runtime.CompilerServices;
 
 namespace InteractiveStand.Application.Services
 {
@@ -25,8 +26,10 @@ namespace InteractiveStand.Application.Services
             {
                 throw new KeyNotFoundException($"Power source with type {dto.Type} not found.");
             }
-            powerSource.RecalculatePercentages(region.ProducedCapacity, dto.Capacity, dto.Type, dto.Reduce);
+            powerSource.UpdateCapacity(dto.Type, dto.Capacity, dto.Reduce);
+            region.ProducedCapacity = powerSource.TotalCurrentCapacity;
             await _regionRepo.UpdatePowerSourceAsync(powerSource);
+            await _regionRepo.UpdateRegionAsync(region);
             return powerSource;
         }
         public async Task<List<Region>> GetRegionsAsync()
@@ -42,7 +45,7 @@ namespace InteractiveStand.Application.Services
                 throw new KeyNotFoundException($"Region with ID {regionId} not found.");
             }
             region.ConsumedCapacity += additionalConsumedCapacity;
-            await _regionRepo.UpdateRegion(region);
+            await _regionRepo.UpdateRegionAsync(region);
         }
 
         public async Task ChangeConsumersPercentage(int regionId, ConsumerUpdatePercantageDto dto)

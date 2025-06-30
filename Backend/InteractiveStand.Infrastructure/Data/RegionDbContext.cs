@@ -1,6 +1,7 @@
 ﻿using InteractiveStand.Domain.Classes;
 using InteractiveStand.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace InteractiveStand.Infrastructure.Data
 {
@@ -62,83 +63,12 @@ namespace InteractiveStand.Infrastructure.Data
                         .OnDelete(DeleteBehavior.Restrict);
 
 
-            #region Initial Data
-            List<PowerSource> powerSources = new List<PowerSource> 
-            {
-                new PowerSource
-                {
-                    Id = 1,
-                    AESPercentage = 25.0,
-                    GESPercentage = 4.0,
-                    TESPercentage = 71.0
-                },
-                new PowerSource
-                {
-                    Id = 2,
-                    AESPercentage = 15.0,
-                    GESPercentage = 25.0,
-                    TESPercentage = 59.0,
-                    VESPercentage = 0.3,
-                    SESPercentage = 0.7
-                },
-                new PowerSource
-                {
-                    Id = 3,
-                    TESPercentage = 92.0,
-                    GESPercentage = 4.0,
-                    AESPercentage = 3.0,
-                    SESPercentage = 1.0
-                },
-                new PowerSource
-                {
-                    Id = 4,
-                    TESPercentage = 63.0,
-                    GESPercentage = 12.0,
-                    AESPercentage = 24.0,
-                    VESPercentage = 1.0
-                },
-                new PowerSource
-                {
-                    Id = 5,
-                    AESPercentage = 23.0,
-                    GESPercentage = 15.0,
-                    TESPercentage = 50.0,
-                    VESPercentage = 8.0,
-                    SESPercentage = 4.0
-                },
-                new PowerSource
-                {
-                    Id = 6,
-                    GESPercentage = 48.0,
-                    TESPercentage = 51.0,
-                    SESPercentage = 1
-                },
-                new PowerSource
-                {
-                    Id = 7,
-                    GESPercentage = 41.0,
-                    TESPercentage = 59.0
-                },
-                new PowerSource
-                {
-                    Id = 8,
-                    AESPercentage = 2.0,
-                    GESPercentage = 48.0,
-                    TESPercentage = 50.0
-                },
-                new PowerSource
-                {
-                    Id = 9,
-                    TESPercentage = 50.0,
-                    SESPercentage = 50.0
-                },
-                new PowerSource
-                {
-                    Id = 10,
-                    VESPercentage = 100.0,
-                }
-            };
-            List<Consumer> consumers = new List<Consumer> 
+            SeedData(modelBuilder);
+        }
+        private void SeedData(ModelBuilder modelBuilder)
+        {
+            #region Consumer
+            List<Consumer> consumers = new List<Consumer>
             {
                 new Consumer { Id =  1, FirstPercentage = 30.0, SecondPercentage = 20.0, ThirdPercentage = 50.0 },
                 new Consumer { Id =  2, FirstPercentage = 40.0, SecondPercentage = 20.0, ThirdPercentage = 40.0 },
@@ -152,7 +82,10 @@ namespace InteractiveStand.Infrastructure.Data
                 new Consumer { Id = 10, FirstPercentage = 30.0, SecondPercentage = 20.0, ThirdPercentage = 50.0 }
 
             };
-            List<Region> regions = new List<Region> 
+            #endregion
+
+            #region Region
+            List<Region> regions = new List<Region>
             {
                 new Region
                 {
@@ -256,8 +189,98 @@ namespace InteractiveStand.Infrastructure.Data
                 }
 
             };
-            List<ConnectedRegion> connectedRegions = new List<ConnectedRegion> 
-            { 
+            #endregion
+
+            #region Power Source
+            List<PowerSource> powerSources = new List<PowerSource>
+            {
+                new PowerSource
+                {
+                    Id = 1,
+                    NPP_Percentage = 25.0,
+                    HPP_Percentage = 4.0,
+                    CGPP_Percentage = 71.0
+                },
+                new PowerSource
+                {
+                    Id = 2,
+                    NPP_Percentage = 15.0,
+                    HPP_Percentage = 25.0,
+                    CGPP_Percentage = 59.0,
+                    WPP_Percentage = 0.3,
+                    SPP_Percentage = 0.7
+                },
+                new PowerSource
+                {
+                    Id = 3,
+                    CGPP_Percentage = 92.0,
+                    HPP_Percentage = 4.0,
+                    NPP_Percentage = 3.0,
+                    SPP_Percentage = 1.0
+                },
+                new PowerSource
+                {
+                    Id = 4,
+                    CGPP_Percentage = 63.0,
+                    HPP_Percentage = 12.0,
+                    NPP_Percentage = 24.0,
+                    WPP_Percentage = 1.0
+                },
+                new PowerSource
+                {
+                    Id = 5,
+                    NPP_Percentage = 23.0,
+                    HPP_Percentage = 15.0,
+                    CGPP_Percentage = 50.0,
+                    WPP_Percentage = 8.0,
+                    SPP_Percentage = 4.0
+                },
+                new PowerSource
+                {
+                    Id = 6,
+                    HPP_Percentage = 48.0,
+                    CGPP_Percentage = 51.0,
+                    SPP_Percentage = 1
+                },
+                new PowerSource
+                {
+                    Id = 7,
+                    HPP_Percentage = 41.0,
+                    CGPP_Percentage = 59.0
+                },
+                new PowerSource
+                {
+                    Id = 8,
+                    NPP_Percentage = 2.0,
+                    HPP_Percentage = 48.0,
+                    CGPP_Percentage = 50.0
+                },
+                new PowerSource
+                {
+                    Id = 9,
+                    CGPP_Percentage = 50.0,
+                    SPP_Percentage = 50.0
+                },
+                new PowerSource
+                {
+                    Id = 10,
+                    WPP_Percentage = 100.0,
+                }
+            };
+            for (int i = 0; i < 10; i++)
+            {
+                powerSources[i].NPP_Capacity = regions[i].ProducedCapacity  * powerSources[i].NPP_Percentage  / 100;
+                powerSources[i].HPP_Capacity = regions[i].ProducedCapacity  * powerSources[i].HPP_Percentage  / 100;
+                powerSources[i].CGPP_Capacity = regions[i].ProducedCapacity * powerSources[i].CGPP_Percentage / 100;
+                powerSources[i].WPP_Capacity = regions[i].ProducedCapacity  * powerSources[i].WPP_Percentage  / 100;
+                powerSources[i].SPP_Capacity = regions[i].ProducedCapacity  * powerSources[i].SPP_Percentage  / 100;
+
+            }
+            #endregion
+
+            #region Connected Region
+            List<ConnectedRegion> connectedRegions = new List<ConnectedRegion>
+            {
                 new ConnectedRegion { Id =  1, RegionSourceId =  1, RegionDestinationId =  2 },
                 new ConnectedRegion { Id =  2, RegionSourceId =  1, RegionDestinationId =  5 },
                 new ConnectedRegion { Id =  3, RegionSourceId =  1, RegionDestinationId =  8 },
@@ -283,8 +306,11 @@ namespace InteractiveStand.Infrastructure.Data
                 new ConnectedRegion { Id = 23, RegionSourceId =  9, RegionDestinationId =  6 },
                 new ConnectedRegion { Id = 24, RegionSourceId = 10, RegionDestinationId =  4 }
             };
-            List<ProducerBinding> producerBindings = new List<ProducerBinding>() 
-            { 
+            #endregion
+
+            #region Producer Binding
+            List<ProducerBinding> producerBindings = new List<ProducerBinding>()
+            {
                 new ProducerBinding { Id =  1, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  1 },
                 new ProducerBinding { Id =  2, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  1 },
                 new ProducerBinding { Id =  3, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  1 },
@@ -336,7 +362,10 @@ namespace InteractiveStand.Infrastructure.Data
                 new ProducerBinding { Id = 49, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId = 10 },
                 new ProducerBinding { Id = 50, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId = 10 }
             };
-            List<ConsumerBinding> consumerBindings = new List<ConsumerBinding>() 
+            #endregion
+
+            #region Consumer Binding
+            List<ConsumerBinding> consumerBindings = new List<ConsumerBinding>()
             {
                 new ConsumerBinding{ Id =  1, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  1 },
                 new ConsumerBinding{ Id =  2, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  1 },
@@ -360,15 +389,14 @@ namespace InteractiveStand.Infrastructure.Data
                 new ConsumerBinding{ Id = 20, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId = 10 },
 
             };
+            #endregion
 
-            
             modelBuilder.Entity<PowerSource>().HasData(powerSources);
             modelBuilder.Entity<Consumer>().HasData(consumers);
             modelBuilder.Entity<ConnectedRegion>().HasData(connectedRegions);
             modelBuilder.Entity<Region>().HasData(regions);
             modelBuilder.Entity<ProducerBinding>().HasData(producerBindings);
             modelBuilder.Entity<ConsumerBinding>().HasData(consumerBindings);
-            #endregion
         }
     }
 }

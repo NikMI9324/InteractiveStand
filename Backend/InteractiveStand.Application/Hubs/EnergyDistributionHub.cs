@@ -18,5 +18,9 @@ namespace InteractiveStand.Application.Hubs
         {
             await Clients.All.SendAsync("ReceiveConnectionUpdate", connections);
         }
+        public async Task SendRegionUpdate(List<Region> regions)
+        {
+            await Clients.All.SendAsync("ReceiveRegionUpdate", regions);
+        }
     }
 }

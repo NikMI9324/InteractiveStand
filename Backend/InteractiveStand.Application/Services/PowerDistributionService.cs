@@ -1,7 +1,10 @@
-﻿using InteractiveStand.Application.Hubs;
+﻿using InteractiveStand.Application.Dtos;
+using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
+using InteractiveStand.Application.Mapper;
 using InteractiveStand.Application.RegionMetricsClass;
 using InteractiveStand.Domain.Classes;
+using InteractiveStand.Domain.Interfaces;
 using InteractiveStand.Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -21,8 +24,8 @@ namespace InteractiveStand.Application.Services
 
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHubContext<EnergyDistributionHub> _hubContext;
-        private readonly ILogger<PowerDistributionService> _logger;
         private readonly int _baseTimeZoneOffset = 3;
+        private readonly IMqttService _mqttService;
 
         private const double DayInSeconds = 24 * 3600;
         private double _speedFactor = 1.0;
@@ -32,12 +35,14 @@ namespace InteractiveStand.Application.Services
         private CancellationTokenSource _simulationCts;
         private readonly SemaphoreSlim _simulationLock = new(1);
 
-        public PowerDistributionService(IServiceScopeFactory scopeFactory,IHubContext<EnergyDistributionHub> hubContext,
-        ILogger<PowerDistributionService> logger)
+        public PowerDistributionService(
+            IServiceScopeFactory scopeFactory,
+            IHubContext<EnergyDistributionHub> hubContext,
+            IMqttService mqttService)
         {
             _scopeFactory = scopeFactory;
             _hubContext = hubContext;
-            _logger = logger;
+            _mqttService = mqttService;
         }
         public void Dispose()
         {
@@ -59,22 +64,20 @@ namespace InteractiveStand.Application.Services
 
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<RegionDbContext>();
-                    var connectedRegions = await context.ConnectedRegions.ToListAsync();
-                    foreach (var cr in connectedRegions)
-                    {
-                        cr.ReceivedFirstCategoryCapacity = 0;
-                        cr.SentFirstCategoryCapacity = 0;
-                        cr.ReceivedRemainingCapacity = 0;
-                        cr.SentRemainingCapacity = 0;
-                    }
-                    await context.SaveChangesAsync();
+                    var repo = scope.ServiceProvider.GetRequiredService<IRegionRepository>();
+                    await repo.ResetConnectedRegionCapacityValuesAsync();
                 }
                 _simulationTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
                 _currentState = SimulationState.Running;
                 _ = RunSimulationAsync(_simulationCts.Token);
-                await _hubContext.Clients.All.SendAsync("ReceiveSimulationUpdate",
-                $"Simulation started at 00:00:00 (GMT{_baseTimeZoneOffset:+#;-#;0}) with {(_speedFactor / 3600):F2} hours per second.");
+
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                new
+                {
+                    Status = "Started",
+                    Message = $"Simulation started (GMT{_baseTimeZoneOffset:+#;-#;0})" +
+                    $"with {(_speedFactor / 3600):F2} hours per second."
+                });
             }
             finally
             {
@@ -93,8 +96,8 @@ namespace InteractiveStand.Application.Services
                     {
                         if (_currentTick >= _totalTicks)
                         {
-                            await _hubContext.Clients.All.SendAsync("ReceiveSimulationUpdate",
-                                "Simulation was successfully completed");
+                            await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                            new { Status = "Completed", Message = "Simulation was successfully completed" });
                             await _hubContext.Clients.All.SendAsync("SimulationFinished");
                             await StopSimulationAsync();
                             return;
@@ -114,13 +117,13 @@ namespace InteractiveStand.Application.Services
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Simulation was canceled");
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                    new { Status = "Canceled", Message = "Simulation was canceled" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in simulation");
-                await _hubContext.Clients.All.SendAsync("ReceiveSimulationUpdate", $"Simulation error: {ex.Message}");
-                
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                    new { Status = "Error", Message = $"Simulation error: {ex.Message}" });
             }
             finally
             {
@@ -136,6 +139,11 @@ namespace InteractiveStand.Application.Services
             double globalSimulationTimeSeconds = _currentTick * _speedFactor;
             double globalSimulationTimeHours = globalSimulationTimeSeconds / 3600;
             double baseHourFraction = globalSimulationTimeHours % 24;
+            await _hubContext.Clients.All.SendAsync("ReceiveCurrentTime", new { 
+                Time = FormatTime(globalSimulationTimeSeconds) 
+            });
+
+            var regionMetricsList = new List<RegionMetricsDto>();
 
             foreach (var region in regions)
             {
@@ -143,14 +151,23 @@ namespace InteractiveStand.Application.Services
                 var stepSeconds = _speedFactor;
 
                 var regionMetrics = await CalculateRegionMetrics(
-                    context, 
                     region, 
                     regionalHourFraction, 
-                    stepSeconds, 
-                    cancellationToken);
+                    stepSeconds);
 
-                var status = BuildRegionStatus(region, globalSimulationTimeSeconds, regionMetrics);
-                await SendSimulationUpdate(status, cancellationToken);
+
+                var producerBindings = await context.ProducerBindings
+                    .Where(pb => pb.RegionId == region.Id)
+                    .Include(pb => pb.Region)
+                        .ThenInclude(r => r.PowerSource)
+                    .ToListAsync();
+                foreach (var producerBinding in producerBindings)
+                {
+                    if (!string.IsNullOrWhiteSpace(producerBinding.MacAddress))
+                    {
+                        await _mqttService.PublishProducedCapacityAsync(producerBinding, region.PowerSource, cancellationToken);
+                    }
+                }
 
                 if (regionMetrics.FirstCategoryDeficit > 0 || regionMetrics.RemainingDeficit > 0)
                 {
@@ -161,13 +178,18 @@ namespace InteractiveStand.Application.Services
                         regionMetrics, 
                         cancellationToken);
                 }
+                if (CheckDeficitStatus(regionMetrics)) 
+                    region.IsActive = false;
+                else region.IsActive = true;
+                regionMetricsList.Add(region.ToRegionMetricsDto(regionMetrics, globalSimulationTimeSeconds));
             }
+            await _hubContext.Clients.All.SendAsync("ReceiveRegionMetrics", regionMetricsList);
         }
-        private double CalculateRegionalHourFraction(Region region, double baseHourFraction)
+        private bool CheckDeficitStatus(RegionMetrics regionMetrics)
         {
-            double fraction = (baseHourFraction + (region.TimeZoneOffset - _baseTimeZoneOffset)) % 24;
-            return fraction < 0 ? fraction + 24 : fraction;
+            return regionMetrics.FirstCategoryDeficit > 0 || regionMetrics.RemainingDeficit > 0;
         }
+        
         private async Task HandleRegionDeficit(
             RegionDbContext context,
             Region region,
@@ -187,17 +209,17 @@ namespace InteractiveStand.Application.Services
         }
 
         private Task<RegionMetrics> CalculateRegionMetrics(
-            RegionDbContext context,
             Region region,
             double hourFraction,
-            double stepSeconds,
-            CancellationToken cancellationToken)
+            double stepSeconds)
         {
             double consumed = IntegrateConsumption(region, hourFraction, stepSeconds);
             double produced = IntegrateProduction(region, hourFraction, stepSeconds);
 
+            double stepHours = stepSeconds / 3600;
+
             double firstCategoryConsumed = consumed * (region.Consumer?.FirstPercentage ?? 0) / 100;
-            double firstCategoryProduced = region.PowerSource?.CalculateAvailableCapacityForFirstCategory(region.ProducedCapacity) ?? 0;
+            double firstCategoryProduced = stepHours * region.PowerSource?.CalculateAvailableCapacityForFirstCategory() ?? 0;
 
             return Task.FromResult(new RegionMetrics
             {
@@ -227,11 +249,9 @@ namespace InteractiveStand.Application.Services
                 return;
             double stepSeconds = _speedFactor;
             var regionMetrics = await CalculateRegionMetrics(
-                context,
                 region,
                 hourFraction,
-                stepSeconds,
-               cancellationToken);
+                stepSeconds);
             if (regionMetrics.FirstCategoryDeficit <= 0 && regionMetrics.RemainingDeficit <= 0) return;
 
             var connections = await context.ConnectedRegions
@@ -249,11 +269,9 @@ namespace InteractiveStand.Application.Services
                     continue;
                 double neighbourHourFraction = CalculateNeighbourHourFraction(region, neighborRegion, hourFraction);
                 var neighbourMetrics = await CalculateRegionMetrics(
-                    context,
                     neighborRegion,
                     neighbourHourFraction,
-                    stepSeconds,
-                    cancellationToken);
+                    stepSeconds);
                 if (regionMetrics.FirstCategoryDeficit > 0 && neighbourMetrics.FirstCategoryDeficit < 0)
                 {
                     double transferAmount = Math.Min(
@@ -332,22 +350,6 @@ namespace InteractiveStand.Application.Services
                 await NotifyTransfer(recipientId, donorId, amount, isFirstCategory);
             }
         }
-        private async Task NotifyTransfer(
-            int recipientId,
-            int donorId,
-            double amount,
-            bool isFirstCategory)
-        {
-            string category = isFirstCategory ? "First" : "Remaining";
-            await _hubContext.Clients.All.SendAsync(
-                "ReceiveDistributionUpdate",
-                $"Transferred {amount:F3} ({category} category) from {donorId} to {recipientId}");
-        }
-        private double CalculateNeighbourHourFraction(Region current, Region neighbor, double currentHourFraction)
-        {
-            int timeZoneDiff = neighbor.TimeZoneOffset - current.TimeZoneOffset;
-            return (currentHourFraction + timeZoneDiff) % 24;
-        }
         private async Task<Region?> GetRegionWithDependenciesAsync(
             RegionDbContext context,
             int regionId,
@@ -358,20 +360,6 @@ namespace InteractiveStand.Application.Services
                 .Include(r => r.PowerSource)
                 .FirstOrDefaultAsync(r => r.Id == regionId, cancellationToken);
         }
-        private string BuildRegionStatus(Region region, double simulationTimeSeconds, RegionMetrics metrics)
-        {
-            return $"Region {region.Id} : {region.Name} at {FormatTime(simulationTimeSeconds)} " +
-                   $"(GMT{region.TimeZoneOffset:+#;-#;0}) : Consumed = {metrics.ConsumedEnergy:F2}, " +
-                   $"Produced = {metrics.ProducedEnergy:F2}, First category deficit = {Math.Min(metrics.FirstCategoryDeficit,0):F4}, " +
-                   $"Remaining category deficit = {Math.Min(metrics.FirstCategoryDeficit, 0):F4}";
-        }
-        private async Task SendSimulationUpdate(string message, CancellationToken cancellationToken)
-        {
-            await _hubContext.Clients.All.SendAsync(
-                "ReceiveSimulationUpdate",
-                message,
-                cancellationToken);
-        }
         private async Task SendConnectionUpdate(
             List<ConnectedRegion> connections,
             Region region,
@@ -379,19 +367,34 @@ namespace InteractiveStand.Application.Services
             CancellationToken cancellationToken)
         {
 
-            await _hubContext.Clients.All.SendAsync(
-                "ReceiveConnectionUpdate",
-                connections,
-                cancellationToken);
+            var connectionDtos = connections.Select(c => new
+            {
+                SourceRegionId = c.RegionSourceId,
+                DestinationRegionId = c.RegionDestinationId,
+                SentFirstCategoryCapacity = c.SentFirstCategoryCapacity,
+                ReceivedFirstCategoryCapacity = c.ReceivedFirstCategoryCapacity,
+                SentRemainingCapacity = c.SentRemainingCapacity,
+                ReceivedRemainingCapacity = c.ReceivedRemainingCapacity
+            }).ToList();
+            await _hubContext.Clients.All.SendAsync("ReceiveConnectionUpdate", connectionDtos);
         }
-        private async Task CleanupSimulation()
+
+        #region Calculate Hour Fraction
+        private double CalculateNeighbourHourFraction(Region current, Region neighbor, double currentHourFraction)
         {
-            _simulationTimer?.Dispose();
-            _simulationTimer = null;
-            _simulationCts?.Dispose();
-            _simulationCts = null;
-            _currentTick = 0;
+            int timeZoneDiff = neighbor.TimeZoneOffset - current.TimeZoneOffset;
+            return (currentHourFraction + timeZoneDiff) % 24;
         }
+
+        private double CalculateRegionalHourFraction(Region region, double baseHourFraction)
+        {
+            double fraction = (baseHourFraction + (region.TimeZoneOffset - _baseTimeZoneOffset)) % 24;
+            return fraction < 0 ? fraction + 24 : fraction;
+        }
+
+        #endregion
+
+        #region Integration Methods
         private double IntegrateConsumption(Region region, double startHourFraction, double stepSeconds)
         {
             double start = startHourFraction;
@@ -415,6 +418,9 @@ namespace InteractiveStand.Application.Services
             double intervalHours = stepSeconds / 3600; 
             return region.HourlyProducedCapacity * intervalHours;
         }
+        #endregion
+
+        #region Simulation Control Methods
         public async Task StopSimulationAsync()
         {
             await _simulationLock.WaitAsync();
@@ -427,7 +433,8 @@ namespace InteractiveStand.Application.Services
                 await CleanupSimulation();
                 _currentState = SimulationState.Stopped;
 
-                await _hubContext.Clients.All.SendAsync("ReceiveSimulationUpdate", "Simulation stopped.");
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                    new { Status = "Stopped", Message = "Simulation stopped." });
             }
             finally
             {
@@ -445,9 +452,8 @@ namespace InteractiveStand.Application.Services
                 _simulationCts.Cancel();
                 _currentState = SimulationState.Paused;
 
-                await _hubContext.Clients.All.SendAsync(
-                    "ReceiveSimulationUpdate",
-                    $"Simulation paused at {FormatTime(_currentTick * _speedFactor)}.");
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                 new { Status = "Paused", Message = $"Simulation paused at {FormatTime(_currentTick * _speedFactor)}." });
             }
             finally
             {
@@ -469,15 +475,17 @@ namespace InteractiveStand.Application.Services
 
                 _ = RunSimulationAsync(_simulationCts.Token);
 
-                await _hubContext.Clients.All.SendAsync(
-                    "ReceiveSimulationUpdate",
-                    $"Simulation resumed at {FormatTime(_currentTick * _speedFactor)}.");
+                await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
+                new { Status = "Resumed", Message = $"Simulation resumed at {FormatTime(_currentTick * _speedFactor)}." });
             }
             finally
             {
                 _simulationLock.Release();
             }
         }
+        #endregion
+
+        #region Helper Methods
         private string FormatTime(double seconds)
         {
             int hours = (int)(seconds / 3600) % 24;
@@ -485,5 +493,24 @@ namespace InteractiveStand.Application.Services
             int secs = (int)(seconds % 60);
             return $"{hours:00}:{minutes:00}:{secs:00}";
         }
+        private async Task CleanupSimulation()
+        {
+            _simulationTimer?.Dispose();
+            _simulationTimer = null;
+            _simulationCts?.Dispose();
+            _simulationCts = null;
+        }
+        private async Task NotifyTransfer(
+            int recipientId,
+            int donorId,
+            double amount,
+            bool isFirstCategory)
+        {
+            string category = isFirstCategory ? "First" : "Remaining";
+            await _hubContext.Clients.All.SendAsync(
+            "ReceiveDistributionUpdate",
+            new { RecipientId = recipientId, DonorId = donorId, Amount = amount, Category = category });
+        }
+        #endregion
     }
 }

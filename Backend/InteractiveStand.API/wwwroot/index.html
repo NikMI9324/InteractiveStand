@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Simulation - Interactive Stand</title>
+    <title>Энергетическая симуляция - Интерактивный стенд</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
         body {
@@ -44,6 +44,75 @@
             margin-top: 0;
             padding-bottom: 10px;
             border-bottom: 1px solid #e0e0e0;
+        }
+
+        .time-section {
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .time-section span {
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+        .region-section {
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .region-header {
+            background-color: #0078d4;
+            color: white;
+            padding: 10px 15px;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .region-content {
+            padding: 10px 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .region-entry {
+            margin: 5px 0;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            background-color: #fafafa;
+            border-radius: 4px;
+        }
+
+            .region-entry span {
+                font-weight: bold;
+            }
+
+        .progress-bar {
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            height: 12px;
+            width: 80px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        .progress-fill {
+            background-color: #4caf50;
+            height: 100%;
+            border-radius: 4px;
         }
 
         .log-section {
@@ -131,7 +200,7 @@
                 padding: 15px;
             }
 
-            .log-content {
+            .log-content, .region-content {
                 height: 150px;
             }
         }
@@ -140,47 +209,52 @@
 <body>
     <div class="container">
         <div class="sidebar">
-            <div class="sidebar-title">Controls</div>
-
+            <div class="sidebar-title">Управление</div>
             <select id="speedFactor">
-                <option value="1">1 sec/sec</option>
-                <option value="60">1 min/sec</option>
-                <option value="2400">40 min/sec</option>
-                <option value="3600">1 hour/sec</option>
-                <option value="7200">2 hours/sec</option>
-                <option value="18000">5 hours/sec</option>
+                <option value="1800">30 мин/сек</option>
+                <option value="3600">1 час/сек</option>
+                <option value="5400">1 час 30 мин/сек</option>
+                <option value="7200">2 часа/сек</option>
+                <option value="10800">3 часa/сек</option>
             </select>
-
-            <button id="startSimulation">Start Simulation</button>
-            <button id="pauseSimulation" disabled>Pause</button>
-            <button id="resumeSimulation" disabled>Resume</button>
-            <button id="stopBtn" disabled>Stop</button>
-            <button id="resetBtn">Reset Data</button>
+            <button id="startSimulation">Запустить симуляцию</button>
+            <button id="pauseSimulation" disabled>Пауза</button>
+            <button id="resumeSimulation" disabled>Возобновить</button>
+            <button id="stopBtn" disabled>Остановить</button>
+            <button id="resetBtn">Сбросить данные</button>
         </div>
 
         <div class="main-content">
-            <h1>Energy Simulation - Interactive Stand</h1>
-
+            <h1>Энергетическая симуляция - Интерактивный стенд</h1>
+            <div class="time-section">
+                <span>Текущее время симуляции:</span>
+                <span id="currentTime">00:00:00</span>
+            </div>
+            <div class="region-section">
+                <div class="region-header">
+                    <span>Обновления регионов</span>
+                    <button id="clearRegionUpdates" style="width: auto; padding: 5px 10px;">Очистить</button>
+                </div>
+                <div class="region-content" id="regionUpdates"></div>
+            </div>
             <div class="log-section">
                 <div class="log-header">
-                    <span>Simulation Logs</span>
-                    <button id="clearSimulationLogs" style="width: auto; padding: 5px 10px;">Clear</button>
+                    <span>Логи симуляции</span>
+                    <button id="clearSimulationLogs" style="width: auto; padding: 5px 10px;">Очистить</button>
                 </div>
                 <div class="log-content" id="simulationLogs"></div>
             </div>
-
             <div class="log-section">
                 <div class="log-header">
-                    <span>Distribution Logs</span>
-                    <button id="clearDistributionLogs" style="width: auto; padding: 5px 10px;">Clear</button>
+                    <span>Логи распределения</span>
+                    <button id="clearDistributionLogs" style="width: auto; padding: 5px 10px;">Очистить</button>
                 </div>
                 <div class="log-content" id="distributionLogs"></div>
             </div>
-
             <div class="log-section">
                 <div class="log-header">
-                    <span>Connection Status</span>
-                    <button id="clearConnectionStatus" style="width: auto; padding: 5px 10px;">Clear</button>
+                    <span>Статус подключений</span>
+                    <button id="clearConnectionStatus" style="width: auto; padding: 5px 10px;">Очистить</button>
                 </div>
                 <div class="log-content" id="connectionStatus"></div>
             </div>
@@ -202,6 +276,12 @@
         const clearSimulationLogs = document.getElementById("clearSimulationLogs");
         const clearDistributionLogs = document.getElementById("clearDistributionLogs");
         const clearConnectionStatus = document.getElementById("clearConnectionStatus");
+        const clearRegionUpdates = document.getElementById("clearRegionUpdates");
+        const currentTimeDisplay = document.getElementById("currentTime");
+        const regionUpdates = document.getElementById("regionUpdates");
+        const simulationLogs = document.getElementById("simulationLogs");
+        const distributionLogs = document.getElementById("distributionLogs");
+        const connectionStatus = document.getElementById("connectionStatus");
 
         // Функция для обновления состояния кнопок
         function updateButtons(isRunning, isPaused) {
@@ -215,33 +295,135 @@
         updateButtons(false, false);
 
         // Обработчики событий SignalR
-        connection.on("ReceiveSimulationUpdate", (message) => {
+        connection.on("ReceiveSimulationStatus", (data) => {
+            console.log("ReceiveSimulationStatus data:", data);
+            if (!data) {
+                console.error("ReceiveSimulationStatus: data is null or undefined");
+                return;
+            }
+            if (!data.status || !data.message) {
+                console.error("ReceiveSimulationStatus: missing required fields", data);
+            }
             const div = document.createElement("div");
             div.className = "log-entry";
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
-            document.getElementById("simulationLogs").prepend(div);
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${data?.status ?? "undefined"}: ${data?.message ?? "undefined"}`;
+            simulationLogs?.prepend(div);
+
+            // Обновление состояния кнопок
+            if (data?.status === "Started" || data?.status === "Resumed") {
+                updateButtons(true, false);
+            } else if (data?.status === "Paused") {
+                updateButtons(true, true);
+            } else if (data?.status === "Stopped" || data?.status === "Completed") {
+                updateButtons(false, false);
+                currentTimeDisplay.textContent = "00:00:00";
+                regionUpdates.innerHTML = "";
+            }
         });
 
         connection.on("SimulationFinished", () => {
+            const div = document.createElement("div");
+            div.className = "log-entry";
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> Симуляция завершена`;
+            document.getElementById("simulationLogs")?.prepend(div);
             updateButtons(false, false);
+            currentTimeDisplay.textContent = "00:00:00";
+            regionUpdates.innerHTML = "";
             alert("Симуляция завершена");
         });
 
-        connection.on("ReceiveDistributionUpdate", (message) => {
+        connection.on("ReceiveCurrentTime", (data) => {
+            console.log("ReceiveCurrentTime data:", data);
+            if (!data) {
+                console.error("ReceiveCurrentTime: data is null or undefined");
+                return;
+            }
+            if (!data.time) {
+                console.error("ReceiveCurrentTime: missing time field", data);
+            }
+            currentTimeDisplay.textContent = data?.time ?? "00:00:00";
+        });
+
+
+        connection.on("ReceiveRegionMetrics", (regions) => {
+            console.log("ReceiveRegionMetrics data:", regions);
+            if (!regions) {
+                console.error("ReceiveRegionMetrics: regions is null or undefined");
+                return;
+            }
+            if (!Array.isArray(regions)) {
+                console.error("ReceiveRegionMetrics: regions is not an array", regions);
+                return;
+            }
+            regionUpdates.innerHTML = "";
+            regions.forEach(region => {
+                if (!region || !region.name || !region.regionId) {
+                    console.error("ReceiveRegionMetrics: invalid region", region);
+                }
+                console.log("Region object:", region); // Отладка структуры
+                const div = document.createElement("div");
+                div.className = "region-entry";
+                div.innerHTML = `
+                <span>Регион ${region?.name ?? "Неизвестный"} (#${region?.regionId ?? "N/A"}):</span><br>
+                Статус: ${region?.isActive ? "Активен" : "Неактивен"}<br>
+                Произведено: ${region?.producedEnergy?.toFixed(2) ?? 0} кВт<br>
+                Потреблено: ${region?.consumedEnergy?.toFixed(2) ?? 0} кВт<br>
+                Дефицит 1-й категории: ${region?.firstCategoryDeficit?.toFixed(2) ?? 0} кВт<br>
+                Остаточный дефицит: ${region?.remainingDeficit?.toFixed(2) ?? 0} кВт<br>
+                <strong>Источники энергии:</strong><br>
+                АЭС: ${region?.npP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.npP_Percentage ?? 0}%"></div></div><br>
+                ГЭС: ${region?.hpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.hpP_Percentage ?? 0}%"></div></div><br>
+                ТЭС: ${region?.cgpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.cgpP_Percentage ?? 0}%"></div></div><br>
+                ВЭС: ${region?.wpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.wpP_Percentage ?? 0}%"></div></div><br>
+                СЭС: ${region?.spP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.spP_Percentage ?? 0}%"></div></div><br>
+                <strong>Потребители:</strong><br>
+                1-я категория: ${region?.firstPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.firstPercentage ?? 0}%"></div></div><br>
+                2-я категория: ${region?.secondPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.secondPercentage ?? 0}%"></div></div><br>
+                3-я категория: ${region?.thirdPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.thirdPercentage ?? 0}%"></div></div>
+            `;
+                regionUpdates?.prepend(div);
+            });
+        });
+
+        connection.on("ReceiveDistributionUpdate", (data) => {
+            console.log("ReceiveDistributionUpdate data:", data);
+            if (!data) {
+                console.error("ReceiveDistributionUpdate: data is null or undefined");
+                return;
+            }
+            if (!data.recipientId || !data.donorId || !data.amount || !data.category) {
+                console.error("ReceiveDistributionUpdate: missing required fields", data);
+            }
             const div = document.createElement("div");
             div.className = "log-entry";
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
-            document.getElementById("distributionLogs").prepend(div);
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> Передано ${data?.amount?.toFixed(3) ?? 0} кВт (${data?.category === "First" ? "1-я категория" : "Остаточная"}) от региона ${data?.donorId ?? "N/A"} в регион ${data?.recipientId ?? "N/A"}`;
+            distributionLogs?.prepend(div);
         });
 
         connection.on("ReceiveConnectionUpdate", (connections) => {
+            console.log("ReceiveConnectionUpdate data:", connections);
+            if (!connections) {
+                console.error("ReceiveConnectionUpdate: connections is null or undefined");
+                return;
+            }
+            if (!Array.isArray(connections)) {
+                console.error("ReceiveConnectionUpdate: connections is not an array", connections);
+                return;
+            }
             const div = document.createElement("div");
             div.className = "log-entry";
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> Connections updated`;
-            const details = document.createElement("pre");
-            details.textContent = JSON.stringify(connections, null, 2);
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> Обновлён статус подключений`;
+            const details = document.createElement("ul");
+            connections.forEach((conn, index) => {
+                if (!conn || !conn.sourceRegionId || !conn.destinationRegionId) {
+                    console.error(`ReceiveConnectionUpdate: invalid connection at index ${index}`, conn);
+                }
+                const li = document.createElement("li");
+                li.textContent = `От ${conn?.sourceRegionId ?? "N/A"} к ${conn?.destinationRegionId ?? "N/A"}: Передано 1-й кат.: ${conn?.sentFirstCategoryCapacity?.toFixed(2) ?? 0} кВт, Получено 1-й кат.: ${conn?.receivedFirstCategoryCapacity?.toFixed(2) ?? 0} кВт, Передано остат.: ${conn?.sentRemainingCapacity?.toFixed(2) ?? 0} кВт, Получено остат.: ${conn?.receivedRemainingCapacity?.toFixed(2) ?? 0} кВт`;
+                details.appendChild(li);
+            });
             div.appendChild(details);
-            document.getElementById("connectionStatus").prepend(div);
+            connectionStatus?.prepend(div);
         });
 
         // Функции управления симуляцией
@@ -254,15 +436,11 @@
 
                 const response = await fetch(`/api/energy/simulate/${speedFactor}`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
+                    headers: { "Content-Type": "application/json" }
                 });
 
-                if (response.ok) {
-                    updateButtons(true, false);
-                } else {
-                    throw new Error("Ошибка сервера");
+                if (!response.ok) {
+                    throw new Error("Ошибка сервера при запуске симуляции");
                 }
             } catch (err) {
                 console.error("Ошибка:", err);
@@ -273,8 +451,8 @@
         async function pauseSimulation() {
             try {
                 const response = await fetch("/api/energy/pause", { method: "POST" });
-                if (response.ok) {
-                    updateButtons(true, true);
+                if (!response.ok) {
+                    throw new Error("Ошибка сервера при паузе");
                 }
             } catch (err) {
                 console.error("Ошибка:", err);
@@ -285,8 +463,8 @@
         async function resumeSimulation() {
             try {
                 const response = await fetch("/api/energy/resume", { method: "POST" });
-                if (response.ok) {
-                    updateButtons(true, false);
+                if (!response.ok) {
+                    throw new Error("Ошибка сервера при возобновлении");
                 }
             } catch (err) {
                 console.error("Ошибка:", err);
@@ -297,8 +475,8 @@
         async function stopSimulation() {
             try {
                 const response = await fetch("/api/energy/stop", { method: "POST" });
-                if (response.ok) {
-                    updateButtons(false, false);
+                if (!response.ok) {
+                    throw new Error("Ошибка сервера при остановке");
                 }
             } catch (err) {
                 console.error("Ошибка:", err);
@@ -313,7 +491,9 @@
                 const div = document.createElement("div");
                 div.className = "log-entry";
                 div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${data}`;
-                document.getElementById("simulationLogs").prepend(div);
+                simulationLogs?.prepend(div);
+                currentTimeDisplay.textContent = "00:00:00";
+                regionUpdates.innerHTML = "";
             } catch (err) {
                 console.error("Ошибка:", err);
                 alert("Не удалось сбросить данные: " + err.message);
@@ -332,15 +512,19 @@
         resetBtn.addEventListener("click", resetData);
 
         clearSimulationLogs.addEventListener("click", () => {
-            document.getElementById("simulationLogs").innerHTML = '';
+            simulationLogs.innerHTML = "";
         });
 
         clearDistributionLogs.addEventListener("click", () => {
-            document.getElementById("distributionLogs").innerHTML = '';
+            distributionLogs.innerHTML = "";
         });
 
         clearConnectionStatus.addEventListener("click", () => {
-            document.getElementById("connectionStatus").innerHTML = '';
+            connectionStatus.innerHTML = "";
+        });
+
+        clearRegionUpdates.addEventListener("click", () => {
+            regionUpdates.innerHTML = "";
         });
 
         async function startConnection() {

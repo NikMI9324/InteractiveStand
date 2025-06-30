@@ -65,6 +65,7 @@ namespace InteractiveStand.API.Controllers
                 return StatusCode(500, $"Ошибка при обновлении источника энергии: {ex.Message}");
             }
         }
+        
         [HttpPost("reset")]
         public async Task<IActionResult> ResetData()
         {

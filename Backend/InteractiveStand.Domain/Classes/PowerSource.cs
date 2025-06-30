@@ -5,92 +5,162 @@ namespace InteractiveStand.Domain.Classes
 {
     public class PowerSource
     {
-        public const double AESEfficiency = 0.80;
-        public const double GESEfficiency = 0.50;
-        public const double TESEfficiency = 0.40;
-        public const double   VESEffiency = 0.25;
-        public const double SESEfficiency = 0.15;
+        public const double  NPP_EFFICIENCY = 0.80;
+        public const double  HPP_EFFICIENCY = 0.50;
+        public const double CGPP_EFFICIENCY = 0.40;
+        public const double  WPP_EFFICIENCY = 0.25;
+        public const double  SPP_EFFICIENCY = 0.15;
 
         [Key]
         public int Id { get; set; }
 
+        public double NPP_Capacity { get; set; } = 0.0;
+        public double HPP_Capacity { get; set; } = 0.0;
+        public double CGPP_Capacity { get; set; } = 0.0;
+        public double WPP_Capacity { get; set; } = 0.0;
+        public double SPP_Capacity { get; set; } = 0.0;
+
         [Range(0, 100)]
-        public double AESPercentage { get; set; } = 0.0;
+        public double NPP_Percentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double GESPercentage { get; set; } = 0.0;
+        public double HPP_Percentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double TESPercentage { get; set; } = 0.0;
+        public double CGPP_Percentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double VESPercentage { get; set; } = 0.0;
+        public double WPP_Percentage { get; set; } = 0.0;
         [Range(0, 100)]
-        public double SESPercentage { get; set; } = 0.0;
-        
-        public double TotalPercentage => AESPercentage + GESPercentage + TESPercentage + VESPercentage + SESPercentage;
+        public double SPP_Percentage { get; set; } = 0.0;
+
+
+        [Range(0, 200)]
+        public double  NPP_LoadFactor { get; set; } = 100;
+        [Range(0, 200)]
+        public double  HPP_LoadFactor { get; set; } = 100;
+        [Range(0, 200)]
+        public double CGPP_LoadFactor { get; set; } = 100;
+        [Range(0, 200)]
+        public double  WPP_LoadFactor { get; set; } = 100;
+        [Range(0, 200)]
+        public double  SPP_LoadFactor { get; set; } = 100;
+
+        public double TotalCapacity => NPP_Capacity + HPP_Capacity + CGPP_Capacity + WPP_Capacity + SPP_Capacity;
+
+        public double GetCurrentNPPCapacity() => NPP_Capacity * NPP_LoadFactor / 100.0;
+        public double GetCurrentHPPCapacity() => HPP_Capacity * HPP_LoadFactor / 100.0;
+        public double GetCurrentCGPPCapacity() => CGPP_Capacity * CGPP_LoadFactor / 100.0;
+        public double GetCurrentWPPCapacity() => WPP_Capacity * WPP_LoadFactor / 100.0;
+        public double GetCurrentSPPCapacity() => SPP_Capacity * SPP_LoadFactor / 100.0;
+
+        public double TotalPercentage => NPP_Percentage + HPP_Percentage + CGPP_Percentage + WPP_Percentage + SPP_Percentage;
+
+        public double TotalCurrentCapacity => GetCurrentNPPCapacity() + GetCurrentHPPCapacity() +
+                                             GetCurrentCGPPCapacity() + GetCurrentWPPCapacity() +
+                                             GetCurrentSPPCapacity();
+
         public PowerSource() { }
 
-        public double CalculateAvailableCapacity(double producedCapacity)
+        public double CalculateAvailableCapacity()
         {
-            return AESPercentage * AESEfficiency * producedCapacity / 100 +
-                   GESPercentage * GESEfficiency * producedCapacity / 100 +
-                   TESPercentage * TESEfficiency * producedCapacity / 100 +
-                   VESPercentage *   VESEffiency * producedCapacity / 100 +
-                   SESPercentage * SESEfficiency * producedCapacity / 100;
+            return GetCurrentNPPCapacity() * NPP_EFFICIENCY +
+                   GetCurrentHPPCapacity() * HPP_EFFICIENCY +
+                   GetCurrentCGPPCapacity() * CGPP_EFFICIENCY +
+                   GetCurrentWPPCapacity() * WPP_EFFICIENCY +
+                   GetCurrentSPPCapacity() * SPP_EFFICIENCY;
         }
-        public double CalculateAvailableCapacityForFirstCategory(double producedCapacity)
+        public double GetProducerCapacity(CapacityProducerType producerType)
         {
-            double gasTESPercentage = TESPercentage * 0.25;
-            double availableCapacity = producedCapacity *    AESPercentage * AESEfficiency / 100 +
-                                       producedCapacity *    GESPercentage * GESEfficiency / 100 +
-                                       producedCapacity * gasTESPercentage * TESEfficiency / 100;
-            return availableCapacity;
+            switch (producerType) 
+            {
+                case  CapacityProducerType.PROD_NPP: return  GetCurrentNPPCapacity();
+                case  CapacityProducerType.PROD_HPP: return  GetCurrentHPPCapacity();
+                case  CapacityProducerType.PROD_WPP: return  GetCurrentWPPCapacity();
+                case CapacityProducerType.PROD_CGPP: return GetCurrentCGPPCapacity();
+                case  CapacityProducerType.PROD_SPP: return  GetCurrentSPPCapacity();
+                                                        default: return 0;
+            }
         }
-        public void RecalculatePercentages(double currentCapacity, double additionalCapacity, CapacityProducerType type, bool reduce)
+        public double CalculateAvailableCapacityForFirstCategory()
         {
-            if (reduce)
-                additionalCapacity *= (-1);
+            return GetCurrentNPPCapacity() * NPP_EFFICIENCY +
+                   GetCurrentHPPCapacity() * HPP_EFFICIENCY +
+                   GetCurrentCGPPCapacity() * CGPP_EFFICIENCY * 0.25;
+        }
+        public void RecalculatePercentages()
+        {
+            double totalCurrent = TotalCurrentCapacity;
+            if (totalCurrent > 0)
+            {
+                NPP_Percentage = GetCurrentNPPCapacity() / totalCurrent * 100.0;
+                HPP_Percentage = GetCurrentHPPCapacity() / totalCurrent * 100.0;
+                CGPP_Percentage = GetCurrentCGPPCapacity() / totalCurrent * 100.0;
+                WPP_Percentage = GetCurrentWPPCapacity() / totalCurrent * 100.0;
+                SPP_Percentage = GetCurrentSPPCapacity() / totalCurrent * 100.0;
 
-            double newCapacity = currentCapacity + additionalCapacity;
+                double totalPercentage = NPP_Percentage + HPP_Percentage + CGPP_Percentage +
+                                         WPP_Percentage + SPP_Percentage;
+                if (Math.Abs(totalPercentage - 100.0) > 0.01)
+                {
+                    double factor = 100.0 / totalPercentage;
+                    NPP_Percentage *= factor;
+                    HPP_Percentage *= factor;
+                    CGPP_Percentage *= factor;
+                    WPP_Percentage *= factor;
+                    SPP_Percentage *= factor;
+                }
+            }
+            else
+            {
+                NPP_Percentage = HPP_Percentage = CGPP_Percentage = WPP_Percentage = SPP_Percentage = 0.0;
+            }
 
-            double currentAES = currentCapacity * AESPercentage / 100;
-            double currentGES = currentCapacity * GESPercentage / 100;
-            double currentTES = currentCapacity * TESPercentage / 100;
-            double currentVES = currentCapacity * VESPercentage / 100;
-            double currentSES = currentCapacity * SESPercentage / 100;
+        }
+
+
+        public void UpdateCapacity(CapacityProducerType type, double deltaCapacity, bool reduce)
+        {
+            double change = reduce ? -deltaCapacity : deltaCapacity;
             switch (type)
             {
                 case CapacityProducerType.PROD_NPP:
-                    currentAES += additionalCapacity;
+                    NPP_Capacity = Math.Max(0, NPP_Capacity + change);
                     break;
                 case CapacityProducerType.PROD_HPP:
-                    currentGES += additionalCapacity;
+                    HPP_Capacity = Math.Max(0, HPP_Capacity + change);
                     break;
                 case CapacityProducerType.PROD_CGPP:
-                    currentTES += additionalCapacity;
+                    CGPP_Capacity = Math.Max(0, CGPP_Capacity + change);
                     break;
                 case CapacityProducerType.PROD_WPP:
-                    currentVES += additionalCapacity;
+                    WPP_Capacity = Math.Max(0, WPP_Capacity + change);
                     break;
                 case CapacityProducerType.PROD_SPP:
-                    currentSES += additionalCapacity;
+                    SPP_Capacity = Math.Max(0, SPP_Capacity + change);
                     break;
             }
-            AESPercentage = 100 * currentAES / newCapacity;
-            GESPercentage = 100 * currentGES / newCapacity;
-            TESPercentage = 100 * currentTES / newCapacity;
-            VESPercentage = 100 * currentVES / newCapacity;
-            SESPercentage = 100 * currentSES / newCapacity;
-
-            double totalPercentage = AESPercentage + GESPercentage + TESPercentage + VESPercentage + SESPercentage;
-            if (Math.Abs(totalPercentage - 100) > 0.01)
-            {
-                double factor = 100 / totalPercentage;
-                AESPercentage *= factor;
-                GESPercentage *= factor;
-                TESPercentage *= factor;
-                VESPercentage *= factor;
-                SESPercentage *= factor;
-            }
+            RecalculatePercentages();
         }
-
+        public void UpdateLoadFactor(CapacityProducerType type, double loadFactor)
+        {
+            loadFactor = Math.Clamp(loadFactor, 0, 200);
+            switch (type)
+            {
+                case CapacityProducerType.PROD_NPP:
+                    NPP_LoadFactor = loadFactor;
+                    break;
+                case CapacityProducerType.PROD_HPP:
+                    HPP_LoadFactor = loadFactor;
+                    break;
+                case CapacityProducerType.PROD_CGPP:
+                    CGPP_LoadFactor = loadFactor;
+                    break;
+                case CapacityProducerType.PROD_WPP:
+                    WPP_LoadFactor = loadFactor;
+                    break;
+                case CapacityProducerType.PROD_SPP:
+                    SPP_LoadFactor = loadFactor;
+                    break;
+            }
+            RecalculatePercentages();
+        }
     }
 }
