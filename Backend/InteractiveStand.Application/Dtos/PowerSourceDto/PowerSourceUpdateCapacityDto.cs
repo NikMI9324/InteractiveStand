@@ -1,6 +1,6 @@
 ﻿using InteractiveStand.Domain.Enums;
 
-namespace InteractiveStand.Application.Dtos
+namespace InteractiveStand.Application.Dtos.PowerSourceDto
 {
     public class PowerSourceUpdateCapacityDto
     {

@@ -1,5 +1,5 @@
-﻿using InteractiveStand.Application.Dtos;
-using InteractiveStand.Application.RegionMetricsClass;
+﻿using InteractiveStand.Application.Dtos.RegionDto;
+using InteractiveStand.Application.RegionMetricsClasses;
 using InteractiveStand.Domain.Classes;
 
 namespace InteractiveStand.Application.Mapper

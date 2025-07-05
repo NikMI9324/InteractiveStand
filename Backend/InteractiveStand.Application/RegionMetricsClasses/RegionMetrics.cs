@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InteractiveStand.Application.RegionMetricsClass
+namespace InteractiveStand.Application.RegionMetricsClasses
 {
     public class RegionMetrics
     {

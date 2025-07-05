@@ -222,6 +222,22 @@ namespace InteractiveStand.Infrastructure.Data
                 WPP_Percentage = 100.0,
             }
         };
+        static InitialData()
+        {
+            for (int i = 0; i < Regions.Count; i++)
+            {
+                var region = Regions[i];
+                var source = PowerSources.FirstOrDefault(p => p.Id == region.PowerSourceId);
+                if (source != null)
+                {
+                    source.NPP_Capacity = region.ProducedCapacity * source.NPP_Percentage / 100;
+                    source.HPP_Capacity = region.ProducedCapacity * source.HPP_Percentage / 100;
+                    source.CGPP_Capacity = region.ProducedCapacity * source.CGPP_Percentage / 100;
+                    source.WPP_Capacity = region.ProducedCapacity * source.WPP_Percentage / 100;
+                    source.SPP_Capacity = region.ProducedCapacity * source.SPP_Percentage / 100;
+                }
+            }
+        }
 
 
     }

@@ -25,7 +25,6 @@ namespace InteractiveStand.Domain.Classes
         [NotMapped]
         public Consumer? Consumer { get; set; }
         public int TimeZoneOffset { get; set; }
-        [NotMapped]
         public bool IsActive { get; set; } = true;
         [NotMapped]
         public double DailyConsumedCapacity => (ConsumedCapacity * 1000) / 365;
@@ -34,6 +33,15 @@ namespace InteractiveStand.Domain.Classes
         [NotMapped]
         public double HourlyProducedCapacity => 
             PowerSource?.CalculateAvailableCapacity() ?? 0;
+        [NotMapped]
+        public double FirstCategoryCapacityBorrowed { get; set; } = 0.0;
+        [NotMapped]
+        public double RemainingCapacityBorrowed { get; set; } = 0.0;
+        [NotMapped]
+        public double FirstCategoryCapacitySent { get; set; } = 0.0;
+        [NotMapped]
+        public double RemainingCapacitySent { get; set; } = 0.0;
+
         public double CalculateHourlyConsumption(double hourFraction)
         {
             double x = hourFraction;

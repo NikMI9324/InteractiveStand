@@ -13,6 +13,7 @@ namespace InteractiveStand.Domain.Interfaces
         Task<List<Region>> GetAllRegionsAsync();
         Task ResetDataAsync();
         Task ResetConnectedRegionCapacityValuesAsync();
-        Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(int regionId, CancellationToken token);
+        Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(CancellationToken token);
+        Task<List<ConsumerBinding>> GetConsumerBindingsWithRegionAsync(CancellationToken token);
     }
 }

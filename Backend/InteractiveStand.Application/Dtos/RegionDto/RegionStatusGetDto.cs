@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InteractiveStand.Application.Dtos
+namespace InteractiveStand.Application.Dtos.RegionDto
 {
     public class RegionStatusGetDto
     {

@@ -1,11 +1,12 @@
-﻿using InteractiveStand.Application.Dtos;
+﻿using InteractiveStand.Application.Dtos.PowerSourceDto;
+using InteractiveStand.Application.Dtos.RegionDto;
 using InteractiveStand.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InteractiveStand.API.Controllers
 {
     [ApiController]
-    [Route("api/region")]
+    [Route("api/ues")]
     public class RegionController : ControllerBase
     {
         private readonly IRegionService _regionService;
@@ -47,13 +48,13 @@ namespace InteractiveStand.API.Controllers
             }
 
         }
-        [HttpPut("update/powersource/{regionId:int}")]
+        [HttpPatch("update/powersource/{regionId:int}")]
         public async Task<IActionResult> UpdatePowerSource([FromRoute] int regionId, [FromBody] PowerSourceUpdateCapacityDto dto)
         {
 
             try
             {
-                var updatedPercentages = await _regionService.AddCapacityPowerSource(regionId, dto);
+                var updatedPercentages = await _regionService.AddCapacityToPowerSource(regionId, dto);
                 return Ok(updatedPercentages);
             }
             catch (KeyNotFoundException ex)
@@ -72,6 +73,13 @@ namespace InteractiveStand.API.Controllers
             await _regionService.ResetDataAsync();
             return Ok("Данные успешно сброшены.");
         }
-
+        
+        [HttpPatch("update/region/{regionId:int}")]
+        public async Task<IActionResult> UpdateRegion([FromRoute]int regionId, [FromBody] RegionUpdateDto dto)
+        {
+            var updated = await _regionService.UpdateRegion(regionId, dto);
+            return Ok(updated);
+        }
+        
     }
 }

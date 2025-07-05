@@ -355,32 +355,40 @@
                 console.error("ReceiveRegionMetrics: regions is not an array", regions);
                 return;
             }
+
             regionUpdates.innerHTML = "";
             regions.forEach(region => {
-                if (!region || !region.name || !region.regionId) {
+                if (!region || !region.name || region.id == null) {
                     console.error("ReceiveRegionMetrics: invalid region", region);
+                    return;
                 }
-                console.log("Region object:", region); // Отладка структуры
+
                 const div = document.createElement("div");
                 div.className = "region-entry";
+
                 div.innerHTML = `
-                <span>Регион ${region?.name ?? "Неизвестный"} (#${region?.regionId ?? "N/A"}):</span><br>
-                Статус: ${region?.isActive ? "Активен" : "Неактивен"}<br>
-                Произведено: ${region?.producedEnergy?.toFixed(2) ?? 0} кВт<br>
-                Потреблено: ${region?.consumedEnergy?.toFixed(2) ?? 0} кВт<br>
-                Дефицит 1-й категории: ${region?.firstCategoryDeficit?.toFixed(2) ?? 0} кВт<br>
-                Остаточный дефицит: ${region?.remainingDeficit?.toFixed(2) ?? 0} кВт<br>
+                <span>Регион ${region.name} (#${region.id}):</span><br>
+                Статус: ${region.status ? "Активен" : "Неактивен"}<br>
+
+                <strong>Энергия:</strong><br>
+                Произведено за тик: ${region.producedEnergy?.toFixed(2) ?? 0} кВт·ч<br>
+                Потреблено за тик: ${region.consumedEnergy?.toFixed(2) ?? 0} кВт·ч<br>
+                Дефицит 1-й категории: ${region.firstCategoryDeficit?.toFixed(2) ?? 0} кВт·ч<br>
+                Остаточный дефицит: ${region.remainingDeficit?.toFixed(2) ?? 0} кВт·ч<br><br>
+
                 <strong>Источники энергии:</strong><br>
-                АЭС: ${region?.npP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.npP_Percentage ?? 0}%"></div></div><br>
-                ГЭС: ${region?.hpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.hpP_Percentage ?? 0}%"></div></div><br>
-                ТЭС: ${region?.cgpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.cgpP_Percentage ?? 0}%"></div></div><br>
-                ВЭС: ${region?.wpP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.wpP_Percentage ?? 0}%"></div></div><br>
-                СЭС: ${region?.spP_Percentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.spP_Percentage ?? 0}%"></div></div><br>
-                <strong>Потребители:</strong><br>
-                1-я категория: ${region?.firstPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.firstPercentage ?? 0}%"></div></div><br>
-                2-я категория: ${region?.secondPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.secondPercentage ?? 0}%"></div></div><br>
-                3-я категория: ${region?.thirdPercentage?.toFixed(1) ?? 0}% <div class="progress-bar"><div class="progress-fill" style="width: ${region?.thirdPercentage ?? 0}%"></div></div>
-            `;
+                АЭС: ${region.npP_Percentage?.toFixed(1) ?? 0}% 
+                <div class="progress-bar"><div class="progress-fill" style="width: ${region.npP_Percentage ?? 0}%"></div></div><br>
+                ГЭС: ${region.hpP_Percentage?.toFixed(1) ?? 0}% 
+                <div class="progress-bar"><div class="progress-fill" style="width: ${region.hpP_Percentage ?? 0}%"></div></div><br>
+                ТЭС: ${region.cgpP_Percentage?.toFixed(1) ?? 0}% 
+                <div class="progress-bar"><div class="progress-fill" style="width: ${region.cgpP_Percentage ?? 0}%"></div></div><br>
+                ВЭС: ${region.wpP_Percentage?.toFixed(1) ?? 0}% 
+                <div class="progress-bar"><div class="progress-fill" style="width: ${region.wpP_Percentage ?? 0}%"></div></div><br>
+                СЭС: ${region.spP_Percentage?.toFixed(1) ?? 0}% 
+                <div class="progress-bar"><div class="progress-fill" style="width: ${region.spP_Percentage ?? 0}%"></div></div><br>
+                `;
+
                 regionUpdates?.prepend(div);
             });
         });
@@ -486,7 +494,7 @@
 
         async function resetData() {
             try {
-                const response = await fetch("/api/region/reset", { method: "POST" });
+                const response = await fetch("/api/ues/reset", { method: "POST" });
                 const data = await response.text();
                 const div = document.createElement("div");
                 div.className = "log-entry";

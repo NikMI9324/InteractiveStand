@@ -112,13 +112,19 @@ namespace InteractiveStand.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(int regionId, CancellationToken token)
+        public async Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(CancellationToken token)
         {
             return await _context.ProducerBindings
-                    .Where(pb => pb.RegionId == regionId)
                     .Include(pb => pb.Region)
                         .ThenInclude(r => r.PowerSource)
                     .ToListAsync(token);
+        }
+
+        public async Task<List<ConsumerBinding>> GetConsumerBindingsWithRegionAsync( CancellationToken token)
+        {
+            return await _context.ConsumerBindings
+                .Include(cb => cb.Region)
+                .ToListAsync(token);
         }
     }
 }

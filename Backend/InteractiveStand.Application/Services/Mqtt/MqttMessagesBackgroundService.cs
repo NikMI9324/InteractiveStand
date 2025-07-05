@@ -1,9 +1,7 @@
 ﻿using InteractiveStand.Application.EspMessages;
-using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
 using InteractiveStand.Domain.Classes;
-using InteractiveStand.Infrastructure.Data;
-using Microsoft.AspNetCore.SignalR;
+using InteractiveStand.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MQTTnet;
@@ -11,14 +9,14 @@ using MQTTnet.Packets;
 using System.Text;
 using System.Text.Json;
 
-namespace InteractiveStand.Application.Services
+namespace InteractiveStand.Application.Services.Mqtt
 {
-    public class MqttService : BackgroundService, IMqttService
+    public class MqttMessagesBackgroundService : BackgroundService, IMqttBackgroundPublisher
     {
         private readonly IMqttClient _mqttClient;
         private readonly MqttClientOptions _mqttOptions;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        public MqttService(IServiceScopeFactory serviceScopeFactory)
+        public MqttMessagesBackgroundService(IServiceScopeFactory serviceScopeFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
 
@@ -26,10 +24,11 @@ namespace InteractiveStand.Application.Services
             _mqttClient = factory.CreateMqttClient();
 
             _mqttOptions = new MqttClientOptionsBuilder()
-                                .WithTcpServer("192.168.205.183", 1883)
+                                .WithTcpServer("192.168.55.183", 1883)
                                 .WithCredentials("hello", "hello")
                                 .Build();
             _mqttClient.ApplicationMessageReceivedAsync += HandleMessageAsync;
+            
             
         }
 
@@ -53,16 +52,13 @@ namespace InteractiveStand.Application.Services
                 await connectHandler.HandleAsync(message, CancellationToken.None);
             }
         }
-        
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            await StartAsync(stoppingToken);
-        }
-        public async Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
+                await _mqttClient.ConnectAsync(_mqttOptions, stoppingToken);
+
                 var topicFilters = new List<MqttTopicFilter>
                 {
                     new MqttTopicFilterBuilder().WithTopic("esp/update").Build(),
@@ -72,34 +68,50 @@ namespace InteractiveStand.Application.Services
                 await _mqttClient.SubscribeAsync(new MqttClientSubscribeOptions
                 {
                     TopicFilters = topicFilters
-                }, cancellationToken);
+                }, stoppingToken);
+                while(!stoppingToken.IsCancellationRequested)
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var regionRepo = scope.ServiceProvider.GetRequiredService<IRegionRepository>();
+                    var producerBindings = await regionRepo.GetProducerBindingsWithRegionAsync(stoppingToken);
+
+                    foreach (var producerBinding in producerBindings)
+                    {
+                        await PublishProducedCapacityAsync(producerBinding, producerBinding.Region.PowerSource, stoppingToken);
+                    }
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(500), stoppingToken);
+                }
             }
-            catch(Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.Message);
-            }
-            
-        }
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            if (_mqttClient.IsConnected)
-            {
-                await _mqttClient.DisconnectAsync(cancellationToken: cancellationToken);
+                Console.WriteLine($"MQTT connection error: {ex.Message}");
             }
         }
 
         public async Task PublishProducedCapacityAsync(ProducerBinding producerBinding, PowerSource powerSource, CancellationToken cancellationToken)
         {
-            if (!_mqttClient.IsConnected || string.IsNullOrWhiteSpace(producerBinding.MacAddress))
+            if (!_mqttClient.IsConnected)
+                await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(producerBinding.MacAddress))
                 return;
+
             var currentCapacity = powerSource.GetProducerCapacity(producerBinding.CapacityProducerType);
-            var message = new { power = currentCapacity };
+
+            var message = new
+            {
+                power = currentCapacity
+            };
+
             var payload = JsonSerializer.Serialize(message);
 
-            await _mqttClient.PublishAsync(new MqttApplicationMessageBuilder()
+            var mqttMessage = new MqttApplicationMessageBuilder()
                 .WithTopic($"producer/{producerBinding.MacAddress}")
                 .WithPayload(Encoding.UTF8.GetBytes(payload))
-                .Build(), cancellationToken);
+                .Build();
+
+            await _mqttClient.PublishAsync(mqttMessage, cancellationToken);
         }
     }
 }

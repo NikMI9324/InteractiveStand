@@ -1,6 +1,8 @@
 using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
+using InteractiveStand.Application.Mapping;
 using InteractiveStand.Application.Services;
+using InteractiveStand.Application.Services.Mqtt;
 using InteractiveStand.Domain.Interfaces;
 using InteractiveStand.Infrastructure.Data;
 using InteractiveStand.Infrastructure.Repository;
@@ -14,8 +16,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 //builder.Services.AddSingleton<MqttService>();
-builder.Services.AddSingleton<IMqttService, MqttService>();
-builder.Services.AddHostedService<MqttService>();
+builder.Services.AddSingleton<IMqttSimulationPublisher, MqttSimulationPublisherService>();
+builder.Services.AddSingleton<IMqttBackgroundPublisher, MqttMessagesBackgroundService>();
+builder.Services.AddHostedService<MqttMessagesBackgroundService>();
+//builder.Services.AddHostedService<ProducerCapacityPublisherService>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<IRegionService, RegionService>();
 builder.Services.AddScoped<IPowerDistributionService, PowerDistributionService>();
@@ -30,7 +36,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://192.168.205.117:5173")
+        policy.WithOrigins("http://192.168.55.117:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

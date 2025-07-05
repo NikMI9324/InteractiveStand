@@ -1,17 +1,16 @@
-﻿using InteractiveStand.Application.Dtos;
+﻿using AutoMapper;
+using InteractiveStand.Application.Dtos.RegionDto;
 using InteractiveStand.Application.Hubs;
 using InteractiveStand.Application.Interfaces;
-using InteractiveStand.Application.Mapper;
-using InteractiveStand.Application.RegionMetricsClass;
+using InteractiveStand.Application.RegionMetricsClasses;
 using InteractiveStand.Domain.Classes;
 using InteractiveStand.Domain.Interfaces;
 using InteractiveStand.Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System.Data;
-using System.Text.Json;
 
 
 namespace InteractiveStand.Application.Services
@@ -25,7 +24,8 @@ namespace InteractiveStand.Application.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHubContext<EnergyDistributionHub> _hubContext;
         private readonly int _baseTimeZoneOffset = 3;
-        private readonly IMqttService _mqttService;
+        private readonly IMqttSimulationPublisher _mqttSimulationPublisherService;
+        private readonly IMapper _mapper;
 
         private const double DayInSeconds = 24 * 3600;
         private double _speedFactor = 1.0;
@@ -38,11 +38,13 @@ namespace InteractiveStand.Application.Services
         public PowerDistributionService(
             IServiceScopeFactory scopeFactory,
             IHubContext<EnergyDistributionHub> hubContext,
-            IMqttService mqttService)
+            IMqttSimulationPublisher mqttSimulationPublisherService,
+            IMapper mapper)
         {
             _scopeFactory = scopeFactory;
             _hubContext = hubContext;
-            _mqttService = mqttService;
+            _mqttSimulationPublisherService = mqttSimulationPublisherService;
+            _mapper = mapper;
         }
         public void Dispose()
         {
@@ -99,10 +101,11 @@ namespace InteractiveStand.Application.Services
                             await _hubContext.Clients.All.SendAsync("ReceiveSimulationStatus",
                             new { Status = "Completed", Message = "Simulation was successfully completed" });
                             await _hubContext.Clients.All.SendAsync("SimulationFinished");
+                            _simulationLock.Release();
                             await StopSimulationAsync();
                             return;
                         }
-
+                        
                         using var scope = _scopeFactory.CreateScope();
 
                         var context = scope.ServiceProvider.GetRequiredService<RegionDbContext>();
@@ -142,7 +145,7 @@ namespace InteractiveStand.Application.Services
             await _hubContext.Clients.All.SendAsync("ReceiveCurrentTime", new { 
                 Time = FormatTime(globalSimulationTimeSeconds) 
             });
-
+            var metricsCache = new Dictionary<int, RegionMetrics>();
             var regionMetricsList = new List<RegionMetricsDto>();
 
             foreach (var region in regions)
@@ -154,58 +157,64 @@ namespace InteractiveStand.Application.Services
                     region, 
                     regionalHourFraction, 
                     stepSeconds);
+                metricsCache[region.Id] = regionMetrics;
 
-
-                var producerBindings = await context.ProducerBindings
-                    .Where(pb => pb.RegionId == region.Id)
-                    .Include(pb => pb.Region)
-                        .ThenInclude(r => r.PowerSource)
-                    .ToListAsync();
-                foreach (var producerBinding in producerBindings)
-                {
-                    if (!string.IsNullOrWhiteSpace(producerBinding.MacAddress))
-                    {
-                        await _mqttService.PublishProducedCapacityAsync(producerBinding, region.PowerSource, cancellationToken);
-                    }
-                }
-
-                if (regionMetrics.FirstCategoryDeficit > 0 || regionMetrics.RemainingDeficit > 0)
+                if (metricsCache[region.Id].FirstCategoryDeficit > 0 || metricsCache[region.Id].RemainingDeficit > 0)
                 {
                     await HandleRegionDeficit(
                         context, 
                         region, 
                         regionalHourFraction, 
-                        regionMetrics, 
+                        metricsCache, 
                         cancellationToken);
                 }
-                if (CheckDeficitStatus(regionMetrics)) 
-                    region.IsActive = false;
-                else region.IsActive = true;
-                regionMetricsList.Add(region.ToRegionMetricsDto(regionMetrics, globalSimulationTimeSeconds));
+                
             }
-            await _hubContext.Clients.All.SendAsync("ReceiveRegionMetrics", regionMetricsList);
+            await PublishConsumerMessage(baseHourFraction, cancellationToken);
+            var simulationDtoList = regions.Select(region =>
+            {
+                var metrics = metricsCache[region.Id];
+                metrics.SimulationTimeSeconds = globalSimulationTimeSeconds;
+
+                return _mapper.Map<RegionSimulationDto>((region, metrics));
+            }).ToList();
+
+            await _hubContext.Clients.All.SendAsync("ReceiveRegionMetrics", simulationDtoList);
         }
-        private bool CheckDeficitStatus(RegionMetrics regionMetrics)
+        private async Task PublishConsumerMessage(double baseHourFraction,CancellationToken cancellationToken)
         {
-            return regionMetrics.FirstCategoryDeficit > 0 || regionMetrics.RemainingDeficit > 0;
+            using var scope = _scopeFactory.CreateScope();
+            var regionRepo = scope.ServiceProvider.GetRequiredService<IRegionRepository>();
+            var consumerBindings = await regionRepo.GetConsumerBindingsWithRegionAsync(cancellationToken);
+            foreach(var consumerBinding in consumerBindings)
+            {
+                double regionHourFraction = CalculateRegionalHourFraction(consumerBinding.Region, baseHourFraction);
+                await _mqttSimulationPublisherService.PublishRegionConsumerStatusAsync(consumerBinding, regionHourFraction, cancellationToken);
+            }
         }
-        
         private async Task HandleRegionDeficit(
             RegionDbContext context,
             Region region,
             double hourFraction,
-            RegionMetrics metrics,
+            Dictionary<int, RegionMetrics> metricsCache,
             CancellationToken cancellationToken)
         {
-            await DistributePowerRecursivelyAsync(
-                region.Id,
-                new HashSet<int>(),
-                hourFraction,
+            var visited = new HashSet<int>();
+            double stepSeconds = _speedFactor;
+
+            bool resolved = await DistributePowerRecursivelyAsync(
                 context,
+                region,
+                visited,
+                hourFraction,
+                metricsCache,
                 cancellationToken);
 
+            region.IsActive = resolved;
+            await context.SaveChangesAsync(cancellationToken);
+
             var connections = await context.ConnectedRegions.ToListAsync(cancellationToken);
-            await SendConnectionUpdate(connections, region, metrics.SimulationTimeSeconds, cancellationToken);
+            await SendConnectionUpdate(connections, region, metricsCache[region.Id].SimulationTimeSeconds, cancellationToken);
         }
 
         private Task<RegionMetrics> CalculateRegionMetrics(
@@ -230,88 +239,186 @@ namespace InteractiveStand.Application.Services
                                   (produced - Math.Min(firstCategoryProduced, firstCategoryConsumed))
             });
         }
-        private async Task DistributePowerRecursivelyAsync(
-            int regionId,
+        private async Task<bool> DistributePowerRecursivelyAsync(
+            RegionDbContext context,
+            Region region,
             HashSet<int> visited,
             double hourFraction,
-            RegionDbContext context,
+            Dictionary<int, RegionMetrics> metricsCache,
             CancellationToken cancellationToken)
         {
-            if (visited.Contains(regionId))
+            if (visited.Contains(region.Id))
             {
-                return;
+                return false;
             }
-            visited.Add(regionId);
+            visited.Add(region.Id);
 
-            var region = await GetRegionWithDependenciesAsync(context, regionId, cancellationToken);
-
-            if (region == null || region.Consumer == null || region.PowerSource == null)
-                return;
             double stepSeconds = _speedFactor;
-            var regionMetrics = await CalculateRegionMetrics(
-                region,
-                hourFraction,
-                stepSeconds);
-            if (regionMetrics.FirstCategoryDeficit <= 0 && regionMetrics.RemainingDeficit <= 0) return;
+            
+            if (metricsCache[region.Id].FirstCategoryDeficit <= 0 && metricsCache[region.Id].RemainingDeficit <= 0) return true;
 
             var connections = await context.ConnectedRegions
-                                           .Where(cr => cr.RegionSourceId == regionId)
+                                           .Where(cr => cr.RegionSourceId == region.Id)
                                            .ToListAsync(cancellationToken);
             foreach (var connection in connections)
             {
-                if (regionMetrics.FirstCategoryDeficit <= 0 && regionMetrics.RemainingDeficit <= 0)
-                    break;
-                var neighborRegion = await GetRegionWithDependenciesAsync(
+                if (metricsCache[region.Id].FirstCategoryDeficit <= 0 && metricsCache[region.Id].RemainingDeficit <= 0)
+                    return true;
+                if (visited.Contains(connection.RegionDestinationId))
+                    continue;
+                var neighbourRegion = await GetRegionWithDependenciesAsync(
                     context,
                     connection.RegionDestinationId,
                     cancellationToken);
-                if (neighborRegion == null || neighborRegion.Consumer == null || neighborRegion.PowerSource == null)
+
+                if (neighbourRegion == null || neighbourRegion.Consumer == null || neighbourRegion.PowerSource == null)
                     continue;
-                double neighbourHourFraction = CalculateNeighbourHourFraction(region, neighborRegion, hourFraction);
-                var neighbourMetrics = await CalculateRegionMetrics(
-                    neighborRegion,
-                    neighbourHourFraction,
-                    stepSeconds);
-                if (regionMetrics.FirstCategoryDeficit > 0 && neighbourMetrics.FirstCategoryDeficit < 0)
+
+                double neighbourHourFraction = CalculateNeighbourHourFraction(region, neighbourRegion, hourFraction);
+
+                if (!metricsCache.TryGetValue(neighbourRegion.Id, out var neighbourMetrics))
                 {
-                    double transferAmount = Math.Min(
-                        regionMetrics.FirstCategoryDeficit,
-                        -neighbourMetrics.FirstCategoryDeficit);
-
-                    await ExecuteTransfer(
-                        context,
-                        region.Id,
-                        neighborRegion.Id,
-                        transferAmount,
-                        isFirstCategory: true,
-                        cancellationToken);
-
-                    regionMetrics.FirstCategoryDeficit -= transferAmount;
+                    neighbourMetrics = await CalculateRegionMetrics(neighbourRegion, neighbourHourFraction, stepSeconds);
+                    metricsCache[neighbourRegion.Id] = neighbourMetrics;
                 }
 
-                if (regionMetrics.RemainingDeficit > 0 && neighbourMetrics.RemainingDeficit < 0)
+                if (metricsCache[region.Id].FirstCategoryDeficit > 0 && metricsCache[neighbourRegion.Id].FirstCategoryDeficit < 0)
                 {
-                    double transferAmount = Math.Min(
-                        regionMetrics.RemainingDeficit,
-                        -neighbourMetrics.RemainingDeficit);
+                    double donorAvailable = -neighbourMetrics.FirstCategoryDeficit;
+                    double required = metricsCache[region.Id].FirstCategoryDeficit;
 
-                    await ExecuteTransfer(
+                    metricsCache[neighbourRegion.Id].FirstCategoryDeficit += required;
+                    metricsCache[region.Id].FirstCategoryDeficit = 0;
+                    if (required <= donorAvailable || 
+                        await DistributePowerRecursivelyAsync(
+                            context, 
+                            neighbourRegion, 
+                            visited, 
+                            neighbourHourFraction, 
+                            metricsCache, 
+                            cancellationToken))
+                    {
+                        await ExecuteTransfer(
+                            context, 
+                            region.Id, 
+                            neighbourRegion.Id, 
+                            required, 
+                            isFirstCategory: true, 
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        double actualTransferred = donorAvailable;
+                        metricsCache[region.Id].FirstCategoryDeficit = required - donorAvailable;
+                        metricsCache[neighbourRegion.Id].FirstCategoryDeficit = 0;
+
+                        await ExecuteTransfer(
+                            context, 
+                            region.Id, 
+                            neighbourRegion.Id, 
+                            actualTransferred, 
+                            isFirstCategory: true, 
+                            cancellationToken);
+                    }
+                }
+                else if (metricsCache[region.Id].FirstCategoryDeficit > 0 && metricsCache[neighbourRegion.Id].FirstCategoryDeficit > 0)
+                {
+                    bool success = await DistributePowerRecursivelyAsync(
                         context,
-                        region.Id,
-                        neighborRegion.Id,
-                        transferAmount,
-                        isFirstCategory: false,
+                        neighbourRegion,
+                        visited,
+                        neighbourHourFraction,
+                        metricsCache,
                         cancellationToken);
 
-                    regionMetrics.RemainingDeficit -= transferAmount;
+                    if (success && metricsCache[neighbourRegion.Id].FirstCategoryDeficit < 0)
+                    {
+                        double donorAvailable = -metricsCache[neighbourRegion.Id].FirstCategoryDeficit;
+                        double required = metricsCache[region.Id].FirstCategoryDeficit;
+
+                        metricsCache[neighbourRegion.Id].FirstCategoryDeficit += required;
+                        metricsCache[region.Id].FirstCategoryDeficit = 0;
+
+                        await ExecuteTransfer(
+                            context,
+                            region.Id,
+                            neighbourRegion.Id,
+                            required <= donorAvailable ? required : donorAvailable,
+                            isFirstCategory: true,
+                            cancellationToken);
+                    }
                 }
-                await DistributePowerRecursivelyAsync(
-                    neighborRegion.Id,
-                    visited,
-                    neighbourHourFraction,
-                    context,
-                    cancellationToken);
+                if (metricsCache[region.Id].RemainingDeficit > 0 && neighbourMetrics.RemainingDeficit < 0)
+                {
+                    double donorAvailable = -neighbourMetrics.RemainingDeficit;
+                    double required = metricsCache[region.Id].RemainingDeficit;
+
+                    metricsCache[neighbourRegion.Id].RemainingDeficit += required;
+                    metricsCache[region.Id].RemainingDeficit = 0;
+
+                    if (required <= donorAvailable ||
+                        await DistributePowerRecursivelyAsync(
+                            context, 
+                            neighbourRegion, 
+                            visited, 
+                            neighbourHourFraction, 
+                            metricsCache, 
+                            cancellationToken))
+                    {
+                        await ExecuteTransfer(
+                            context, 
+                            region.Id, 
+                            neighbourRegion.Id, 
+                            required, 
+                            isFirstCategory: false, 
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        double actualTransferred = donorAvailable;
+                        metricsCache[region.Id].RemainingDeficit = required - donorAvailable;
+                        metricsCache[neighbourRegion.Id].RemainingDeficit = 0;
+
+                        await ExecuteTransfer(
+                            context, 
+                            region.Id, 
+                            neighbourRegion.Id, 
+                            actualTransferred, 
+                            isFirstCategory: false, 
+                            cancellationToken);
+                    }
+                }
+                else if (metricsCache[region.Id].RemainingDeficit > 0 && metricsCache[neighbourRegion.Id].RemainingDeficit > 0)
+                {
+                    bool success = await DistributePowerRecursivelyAsync(
+                        context,
+                        neighbourRegion,
+                        visited,
+                        neighbourHourFraction,
+                        metricsCache,
+                        cancellationToken);
+
+                    if (success && metricsCache[neighbourRegion.Id].RemainingDeficit < 0)
+                    {
+                        double donorAvailable = -metricsCache[neighbourRegion.Id].RemainingDeficit;
+                        double required = metricsCache[region.Id].RemainingDeficit;
+
+                        metricsCache[neighbourRegion.Id].RemainingDeficit += required;
+                        metricsCache[region.Id].RemainingDeficit = 0;
+
+                        await ExecuteTransfer(
+                            context,
+                            region.Id,
+                            neighbourRegion.Id,
+                            required <= donorAvailable ? required : donorAvailable,
+                            isFirstCategory: true,
+                            cancellationToken);
+                    }
+                }
             }
+
+            return metricsCache[region.Id].FirstCategoryDeficit <= 0 &&
+                   metricsCache[region.Id].RemainingDeficit <= 0;
         }
         private async Task ExecuteTransfer(
             RegionDbContext context,
