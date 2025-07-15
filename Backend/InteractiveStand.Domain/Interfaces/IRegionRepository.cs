@@ -15,5 +15,6 @@ namespace InteractiveStand.Domain.Interfaces
         Task ResetConnectedRegionCapacityValuesAsync();
         Task<List<ProducerBinding>> GetProducerBindingsWithRegionAsync(CancellationToken token);
         Task<List<ConsumerBinding>> GetConsumerBindingsWithRegionAsync(CancellationToken token);
+        Task ResetRegionStatusAsync();
     }
 }

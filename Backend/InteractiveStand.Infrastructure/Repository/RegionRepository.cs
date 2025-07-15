@@ -126,5 +126,13 @@ namespace InteractiveStand.Infrastructure.Repository
                 .Include(cb => cb.Region)
                 .ToListAsync(token);
         }
+
+        public async Task ResetRegionStatusAsync()
+        {
+            var regions = await _context.Regions.ToListAsync();
+            foreach (var region in regions)
+                region.IsActive = true;
+            await _context.SaveChangesAsync();
+        }
     }
 }

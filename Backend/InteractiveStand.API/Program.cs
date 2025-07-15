@@ -7,19 +7,34 @@ using InteractiveStand.Domain.Interfaces;
 using InteractiveStand.Infrastructure.Data;
 using InteractiveStand.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+var containerConnectionString = builder.Configuration.GetConnectionString("Database");
+var localConnectionString = "Host=localhost;Port=5432;Database=EnergySystem;Username=postgres;Password=miroshka";
+
+string finalConnectionString;
+
+try
+{
+    using var conn = new NpgsqlConnection(containerConnectionString);
+    conn.Open();
+    finalConnectionString = containerConnectionString;
+}
+catch (Exception)
+{
+    finalConnectionString = localConnectionString;
+}
+
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
-//builder.Services.AddSingleton<MqttService>();
+builder.Services.AddDbContext<RegionDbContext>(o => o.UseNpgsql(finalConnectionString));
 builder.Services.AddSingleton<IMqttSimulationPublisher, MqttSimulationPublisherService>();
 builder.Services.AddSingleton<IMqttBackgroundPublisher, MqttMessagesBackgroundService>();
 builder.Services.AddHostedService<MqttMessagesBackgroundService>();
-//builder.Services.AddHostedService<ProducerCapacityPublisherService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -36,7 +51,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://192.168.55.117:5173")
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -44,6 +59,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {

@@ -17,6 +17,9 @@ namespace InteractiveStand.Application.Dtos.RegionDto
         public double CGPP_Percentage { get; set; }
         public double WPP_Percentage { get; set; }
         public double SPP_Percentage { get; set; }
-
+        public double FirstPercentage { get; set; }
+        public double SecondPercentage { get; set; }
+        public double ThirdPercentage { get; set; } 
+        //public int TimeZoneOffset { get; set; }
     }
 }

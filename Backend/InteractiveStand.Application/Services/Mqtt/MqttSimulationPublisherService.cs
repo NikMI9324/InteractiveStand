@@ -11,6 +11,8 @@ namespace InteractiveStand.Application.Services.Mqtt
     {
         private readonly IMqttClient _mqttClient;
         private readonly MqttClientOptions _mqttOptions;
+        private bool _triedToConnect = false;
+        private bool _isConnectionFailed = false;
         public MqttSimulationPublisherService()
         {
             _mqttClient = new MqttClientFactory().CreateMqttClient();
@@ -21,9 +23,27 @@ namespace InteractiveStand.Application.Services.Mqtt
         }
         public async Task PublishRegionConsumerStatusAsync(ConsumerBinding consumerBinding, double currentTime, CancellationToken cancellationToken)
         {
-            if (!_mqttClient.IsConnected)
-                await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
+            
             if (string.IsNullOrWhiteSpace(consumerBinding.MacAddress))
+                return;
+            if (!_mqttClient.IsConnected && !_isConnectionFailed)
+            {
+                try
+                {
+                    if (!_triedToConnect)
+                    {
+                        _triedToConnect = true;
+                        await _mqttClient.ConnectAsync(_mqttOptions, cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _isConnectionFailed = true;
+                    Console.WriteLine($"[MQTT] Ошибка подключения: {ex.Message}");
+                    return; 
+                }
+            }
+            if (!_mqttClient.IsConnected)
                 return;
 
             var message = new

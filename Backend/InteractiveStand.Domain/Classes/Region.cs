@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Metadata.Ecma335;
 //Формулы на будущее
 //S = 16,86374N
 // N/4 + (3 * N / 4) * exp^(-((x-7)/4,25)^2) + (3 * N / 4) * exp^(-((x-17)/4,25)^2) 
@@ -7,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InteractiveStand.Domain.Classes
 {
-    public class Region
+    public class Region : IComparable<Region>
     {
 
         [Key]
@@ -49,6 +50,24 @@ namespace InteractiveStand.Domain.Classes
             double term2 = (3 * HourlyPeakConsumedCapacity / 4) * Math.Exp(-Math.Pow((x - 7) / 4.25, 2));
             double term3 = (3 * HourlyPeakConsumedCapacity / 4) * Math.Exp(-Math.Pow((x - 17) / 4.25, 2));
             return term1 + term2 + term3;
+        }
+
+        public int CompareTo(Region? other)
+        {
+            if (other is null) return 1 ;
+            return Id.CompareTo(other.Id);
+        }
+        public override bool Equals(object? obj)
+        {
+            if (obj is Region other)
+            {
+                return Id == other.Id;
+            }
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

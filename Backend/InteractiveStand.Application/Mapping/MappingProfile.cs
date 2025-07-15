@@ -31,6 +31,11 @@ namespace InteractiveStand.Application.Mapping
                 .ForMember(dest => dest.CGPP_Percentage, opt => opt.MapFrom(src => src.region.PowerSource.CGPP_Percentage))
                 .ForMember(dest => dest.WPP_Percentage, opt => opt.MapFrom(src => src.region.PowerSource.WPP_Percentage))
                 .ForMember(dest => dest.SPP_Percentage, opt => opt.MapFrom(src => src.region.PowerSource.SPP_Percentage))
+                .ForMember(dest => dest.FirstPercentage, opt => opt.MapFrom(src => src.region.Consumer.FirstPercentage))
+                .ForMember(dest => dest.SecondPercentage, opt => opt.MapFrom(src => src.region.Consumer.SecondPercentage))
+                .ForMember(dest => dest.ThirdPercentage, opt => opt.MapFrom(src => src.region.Consumer.ThirdPercentage))
+                //.ForMember(dest => dest.TimeZoneOffset, opt => opt.MapFrom(src => src.region.TimeZoneOffset))
+
 
                 .ForMember(dest => dest.ProducedEnergy, opt => opt.MapFrom(src => src.metrics.ProducedEnergy))
                 .ForMember(dest => dest.ConsumedEnergy, opt => opt.MapFrom(src => src.metrics.ConsumedEnergy))

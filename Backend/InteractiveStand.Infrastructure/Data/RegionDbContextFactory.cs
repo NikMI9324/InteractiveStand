@@ -9,8 +9,9 @@ namespace InteractiveStand.Infrastructure.Data
         public RegionDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<RegionDbContext>();
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=EnergySystem;Username=postgres;" +
-                "Password=miroshka;Timeout=10;SslMode=Prefer");
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION")
+                ?? "Host=localhost;Port=5432;Database=EnergySystem;Username=postgres;Password=miroshka";
+            optionsBuilder.UseNpgsql(connectionString);
             return new RegionDbContext(optionsBuilder.Options);
         }
     }
