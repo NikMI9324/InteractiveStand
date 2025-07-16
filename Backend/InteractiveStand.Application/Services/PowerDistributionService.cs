@@ -196,23 +196,7 @@ namespace InteractiveStand.Application.Services
                         cancellationToken);
                 }
             }
-            _ = Task.Run(async () =>
-            {
-                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                timeoutCts.CancelAfter(TimeSpan.FromSeconds(2)); 
-                try
-                {
-                    await PublishConsumerMessage(baseHourFraction, timeoutCts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    Console.WriteLine("[MQTT] PublishConsumerMessage прерван из-за таймаута");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[MQTT] Ошибка при публикации: {ex.Message}");
-                }
-            });
+            await PublishConsumerMessage(baseHourFraction, cancellationToken);
             var simulationDtoList = regions.Select(region =>
             {
                 var metrics = metricsList.FirstOrDefault(x => x.region == region).regionMetrcis;

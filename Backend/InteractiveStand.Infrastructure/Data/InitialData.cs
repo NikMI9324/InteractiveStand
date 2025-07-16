@@ -1,4 +1,5 @@
 ﻿using InteractiveStand.Domain.Classes;
+using InteractiveStand.Domain.Enums;
 
 namespace InteractiveStand.Infrastructure.Data
 {
@@ -222,6 +223,82 @@ namespace InteractiveStand.Infrastructure.Data
                 WPP_Percentage = 100.0,
             }
         };
+        public static List<ProducerBinding> ProducerBindings = new List<ProducerBinding>
+        {
+            new ProducerBinding { Id =  1, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  1 },
+            new ProducerBinding { Id =  2, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  1 },
+            new ProducerBinding { Id =  3, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  1 },
+            new ProducerBinding { Id =  4, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  1 },
+            new ProducerBinding { Id =  5, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  1 },
+            new ProducerBinding { Id =  6, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  2 },
+            new ProducerBinding { Id =  7, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  2 },
+            new ProducerBinding { Id =  8, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  2 },
+            new ProducerBinding { Id =  9, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  2 },
+            new ProducerBinding { Id = 10, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  2 },
+            new ProducerBinding { Id = 11, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  3 },
+            new ProducerBinding { Id = 12, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  3 },
+            new ProducerBinding { Id = 13, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  3 },
+            new ProducerBinding { Id = 14, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  3 },
+            new ProducerBinding { Id = 15, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  3 },
+            new ProducerBinding { Id = 16, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  4 },
+            new ProducerBinding { Id = 17, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  4 },
+            new ProducerBinding { Id = 18, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  4 },
+            new ProducerBinding { Id = 19, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  4 },
+            new ProducerBinding { Id = 20, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  4 },
+            new ProducerBinding { Id = 21, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  5 },
+            new ProducerBinding { Id = 22, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  5 },
+            new ProducerBinding { Id = 23, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  5 },
+            new ProducerBinding { Id = 24, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  5 },
+            new ProducerBinding { Id = 25, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  6 },
+            new ProducerBinding { Id = 26, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  6 },
+            new ProducerBinding { Id = 27, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  6 },
+            new ProducerBinding { Id = 28, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  6 },
+            new ProducerBinding { Id = 29, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  6 },
+            new ProducerBinding { Id = 30, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  6 },
+            new ProducerBinding { Id = 31, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  7 },
+            new ProducerBinding { Id = 32, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  7 },
+            new ProducerBinding { Id = 33, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  7 },
+            new ProducerBinding { Id = 34, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  7 },
+            new ProducerBinding { Id = 35, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  7 },
+            new ProducerBinding { Id = 36, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  8 },
+            new ProducerBinding { Id = 37, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  8 },
+            new ProducerBinding { Id = 38, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  8 },
+            new ProducerBinding { Id = 39, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  8 },
+            new ProducerBinding { Id = 40, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  8 },
+            new ProducerBinding { Id = 41, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId =  9 },
+            new ProducerBinding { Id = 42, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId =  9 },
+            new ProducerBinding { Id = 43, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId =  9 },
+            new ProducerBinding { Id = 44, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId =  9 },
+            new ProducerBinding { Id = 45, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId =  9 },
+            new ProducerBinding { Id = 46, CapacityProducerType = CapacityProducerType.PROD_CGPP, RegionId = 10 },
+            new ProducerBinding { Id = 47, CapacityProducerType = CapacityProducerType.PROD_HPP, RegionId = 10 },
+            new ProducerBinding { Id = 48, CapacityProducerType = CapacityProducerType.PROD_NPP, RegionId = 10 },
+            new ProducerBinding { Id = 49, CapacityProducerType = CapacityProducerType.PROD_WPP, RegionId = 10 },
+            new ProducerBinding { Id = 50, CapacityProducerType = CapacityProducerType.PROD_SPP, RegionId = 10 }
+        };
+        public static List<ConsumerBinding> ConsumerBindings = new List<ConsumerBinding>
+        {
+            new ConsumerBinding{ Id =  1, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  1 },
+            new ConsumerBinding{ Id =  2, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  1 },
+            new ConsumerBinding{ Id =  3, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  2 },
+            new ConsumerBinding{ Id =  4, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  2 },
+            new ConsumerBinding{ Id =  5, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  3 },
+            new ConsumerBinding{ Id =  6, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  3 },
+            new ConsumerBinding{ Id =  7, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  4 },
+            new ConsumerBinding{ Id =  8, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  4 },
+            new ConsumerBinding{ Id =  9, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  5 },
+            new ConsumerBinding{ Id = 10, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  5 },
+            new ConsumerBinding{ Id = 11, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  6 },
+            new ConsumerBinding{ Id = 12, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  6 },
+            new ConsumerBinding{ Id = 13, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  7 },
+            new ConsumerBinding{ Id = 14, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  7 },
+            new ConsumerBinding{ Id = 15, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  8 },
+            new ConsumerBinding{ Id = 16, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  8 },
+            new ConsumerBinding{ Id = 17, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId =  9 },
+            new ConsumerBinding{ Id = 18, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId =  9 },
+            new ConsumerBinding{ Id = 19, CapacityConsumerType =     CapacityConsumerType.CON_FIRST, RegionId = 10 },
+            new ConsumerBinding{ Id = 20, CapacityConsumerType = CapacityConsumerType.CON_OTHER, RegionId = 10 },
+        };
         static InitialData()
         {
             for (int i = 0; i < Regions.Count; i++)
@@ -238,6 +315,7 @@ namespace InteractiveStand.Infrastructure.Data
                 }
             }
         }
+
 
 
     }

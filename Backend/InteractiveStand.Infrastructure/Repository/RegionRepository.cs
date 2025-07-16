@@ -78,6 +78,8 @@ namespace InteractiveStand.Infrastructure.Repository
             await UpsertRangeAsync(_context.Consumers, InitialData.Consumers);
             await UpsertRangeAsync(_context.Regions, InitialData.Regions);
             await UpsertRangeAsync(_context.ConnectedRegions, InitialData.ConnectedRegions);
+            await UpsertRangeAsync(_context.ConsumerBindings, InitialData.ConsumerBindings);
+            await UpsertRangeAsync(_context.ProducerBindings, InitialData.ProducerBindings);
             await _context.SaveChangesAsync();
         }
 
