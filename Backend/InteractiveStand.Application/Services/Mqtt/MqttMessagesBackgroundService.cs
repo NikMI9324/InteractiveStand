@@ -25,7 +25,7 @@ namespace InteractiveStand.Application.Services.Mqtt
 
             _mqttOptions = new MqttClientOptionsBuilder()
                                 .WithTcpServer("localhost", 1883)
-                                .WithCredentials("Miron", "Miron")
+                                .WithCredentials("IES", "practice")
                                 .Build();
             _mqttClient.ApplicationMessageReceivedAsync += HandleMessageAsync;
             

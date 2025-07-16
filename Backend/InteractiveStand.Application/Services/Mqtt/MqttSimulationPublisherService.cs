@@ -18,7 +18,7 @@ namespace InteractiveStand.Application.Services.Mqtt
             _mqttClient = new MqttClientFactory().CreateMqttClient();
             _mqttOptions = new MqttClientOptionsBuilder()
                                 .WithTcpServer("localhost", 1883)
-                                .WithCredentials("Miron", "Miron")
+                                .WithCredentials("IES", "practice")
                                 .WithKeepAlivePeriod(TimeSpan.FromSeconds(30))
                                 .Build();
         }
